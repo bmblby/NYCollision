@@ -1,0 +1,40 @@
+{
+  "name": "wifiOnIce",
+  "version": "1.0.0",
+  "description": "web-based visualization for Deutsche Bahn wifi dataset",
+  "main": "webpack.dev.js",
+  "scripts": {
+    "build": "webpack --config webpack.dev.js",
+    "watch": "webpack --config webpack.dev.js --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "d3": "^5.4.0",
+    "leaflet": "^1.3.1",
+    "source-map-loader": "^0.2.3",
+    "webpack": "^4.8.1",
+    "webpack-cli": "^2.1.3"
+  },
+  "devDependencies": {
+    "clean-webpack-plugin": "^0.1.19",
+    "copy-webpack-plugin": "^4.5.1",
+    "css-loader": "^0.28.11",
+    "file-loader": "^1.1.11",
+    "node-sass": "^4.9.0",
+    "npm-update-all": "^1.0.1",
+    "popper.js": "^1.14.3",
+    "sass-loader": "^7.0.1",
+    "style-loader": "^0.21.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bmblby/wifiOnIce.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bmblby/wifiOnIce/issues"
+  },
+  "homepage": "https://github.com/bmblby/wifiOnIce#readme"
+}
