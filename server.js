@@ -2,6 +2,7 @@
 
 const path = require("path");
 const express = require("express");
+const bodyParser = require('body-parser');
 const pgp = require('pg-promise')({
   // insert options for database
 });
@@ -11,20 +12,23 @@ const cn = "postgres://giuli:test123@localhost:5432/hard_task";
 const db = pgp(cn);
 module.export = db;
 
+// request to database
 db.any('SELECT * FROM germany',
   [true]
 ).then((data) => {
-  console.log(data);
+  // console.log(data);
 }).catch((data) => {
-  console.log(data);
+  // console.log(data);
 })
 
+// Basic server setup
 var DIST_DIR = path.join(__dirname, "dist"),
     PORT = 3000,
     app = express();
 
 //Serving the files on the dist folder
 app.use(express.static(DIST_DIR));
+app.use(bodyParser.json());
 
 //Send index.html when the user access the web
 app.get("*", function (req, res) {
@@ -32,6 +36,16 @@ app.get("*", function (req, res) {
 });
 
 app.listen(PORT);
+
+app.post('/', (req, res) => {
+  console.log(req.body.test);
+
+  let string = req.body.test;
+  string = string.replace(/Test/i, "fucking Test");
+  res.json({
+    test: string
+  });
+})
 
 
 

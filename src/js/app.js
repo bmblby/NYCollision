@@ -51,3 +51,25 @@ radioBtn.addEventListener("click", (e) => {
   }
 })
 
+
+
+// test connection to postgres database
+function getGermanyShape() {
+  let url = 'http://localhost:3000';
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      "test": "Is this a Test?"
+    }),
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }).then(res => res.json())
+  .catch(error => console.error('Error: ', error))
+  .then((res) => {
+    console.log(res.test);
+  })
+}
+
+getGermanyShape();
+// console.log(stuff);
