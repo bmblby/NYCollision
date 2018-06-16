@@ -16,4 +16,38 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
     accessToken: 'pk.eyJ1IjoiYm1ibGJ5IiwiYSI6ImNqaDg4cXFhbTAxNW0zM3FkZTFpamx6YXEifQ.-R9m-vKuOfwwG_NujYk7iw'
 }).addTo(mymap);
 
-console.log("still working like a charm!!!");
+// draw points, lines and Polygons
+let radioBtn = document.querySelector('.radio-btn');
+radioBtn.addEventListener("click", (e) => {
+  let button = e.originalTarget.value;
+  if (button === "point") {
+    mymap.removeEventListener();
+    mymap.addEventListener('click', (e) => {
+      L.circleMarker(e.latlng).addTo(mymap);
+      console.log(e.latlng);
+    })
+  }
+  else if(button === "line") {
+    var line = [];
+    mymap.removeEventListener();
+    mymap.addEventListener('click', (e) => {
+      line.push(e.latlng);
+      if (line.length > 1) {
+        L.polyline(line, {color: 'red'}).addTo(mymap);
+      }
+      console.log(e.latlng);
+    });
+  }
+  else {
+    var polygon = [];
+    mymap.removeEventListener();
+    mymap.addEventListener('click', (e) => {
+      polygon.push(e.latlng);
+      if (polygon.length > 1) {
+        L.polygon(polygon, {color: 'green'}).addTo(mymap);
+      }
+      console.log(e.latlng);
+    });
+  }
+})
+
