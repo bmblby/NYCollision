@@ -110,16 +110,25 @@ saveBtn.addEventListener('click', (e) => {
     paths: paths,
     polygons: polygons
   }
+  let data = {
+    task: 'insert',
+    data: geometries
+  }
   console.log("send geometries to server: ", geometries);
-  send(geometries, 'localhost', 3000);
+  send(data, 'localhost', 3000);
 });
 
 let clearBtn = document.querySelector('[name=clear-db]');
+clearBtn.addEventListener('click', (e) => {
+  let data = {
+    task: 'clear'
+  }
+  send(data, 'localhost', 3000);
+})
 
 function send(data, host, port) {
   let url = 'http://';
   url = url + host.toString() + ':' + port.toString();
-  data.task = 'insert';
 
   return fetch(url, {
     method: 'POST',

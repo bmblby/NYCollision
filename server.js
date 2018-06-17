@@ -89,6 +89,16 @@ app.post('/', (req, res) => {
       test: string
     });
   }
+  else if (d.task === "clear") {
+    db.none('DELETE FROM points *');
+    db.none('DELETE FROM lines *');
+    db.none('DELETE FROM paths *');
+    db.none('DELETE FROM polygons *');
+
+    res.json({
+      test: 'cleared all entries from all entries!'
+    });
+  }
   else if (d.task === "insert") {
     console.log('inserting into database');
     insert2DB(d.data);
