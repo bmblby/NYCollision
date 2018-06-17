@@ -38,13 +38,26 @@ app.get("*", function (req, res) {
 app.listen(PORT);
 
 app.post('/', (req, res) => {
-  console.log(req.body.test);
+  let d = req.body;
+  console.log(d);
 
-  let string = req.body.test;
-  string = string.replace(/Test/i, "fucking Test");
-  res.json({
-    test: string
-  });
+  if(d.test) {
+    let string = d.test;
+    string = string.replace(/Test/i, "fucking Test");
+    res.json({
+      test: string
+    });
+  }
+  else if (d.task === "insert") {
+    db.none(
+
+    )
+  }
+  else {
+    res.json({
+      test: 'No task specified! Please resend data with task!'
+    })
+  }
 })
 
 
