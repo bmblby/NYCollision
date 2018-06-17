@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import "../css/style.css";
 import L from "leaflet";
 
-var mymap = L.map('mapid').setView([50.85, 9.88], 5.5);
+let mymap = L.map('mapid').setView([50.85, 9.88], 5.5);
 console.log("ready to go on in the tutorial!");
 
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
@@ -17,6 +17,15 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 }).addTo(mymap);
 
 // draw points, lines and Polygons
+
+let globalID = 0;
+let points = [];
+let lines = [];
+let polygons = [];
+
+let polyline = [];
+let polygon = [];
+
 let radioBtn = document.querySelector('.radio-btn');
 radioBtn.addEventListener("click", (e) => {
   let button = e.originalTarget.value;
@@ -24,7 +33,11 @@ radioBtn.addEventListener("click", (e) => {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       L.circleMarker(e.latlng).addTo(mymap);
-      console.log(e.latlng);
+      points.push({
+        id: globalID + 1,
+        point_geom: e.latlng
+      })
+      console.log(points);
     })
   }
   else if(button === "line") {
@@ -32,22 +45,55 @@ radioBtn.addEventListener("click", (e) => {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       line.push(e.latlng);
-      if (line.length > 1) {
+      if (line.length == 2) {
         L.polyline(line, {color: 'red'}).addTo(mymap);
+        lines.push({
+          id: globalID + 1,
+          line_geom: line
+        })
+        line = [];
       }
-      console.log(e.latlng);
+      console.log(lines);
     });
   }
-  else {
-    var polygon = [];
+  else if(button === "polyline") {
+    mymap.removeEventListener();
+    mymap.addEventListener('click', (e) => {
+      polyline.push(e.latlng);
+      L.polyline(polyline, {color: 'red'}).addTo(mymap);
+      console.log('polyline: ', polyline);
+    });
+  }
+  else if (button === "polygon") {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       polygon.push(e.latlng);
-      if (polygon.length > 1) {
-        L.polygon(polygon, {color: 'green'}).addTo(mymap);
-      }
-      console.log(e.latlng);
+      L.polyline(polygon, {color: 'green'}).addTo(mymap);
+      console.log('polygon: ', polygon);
     });
+  }
+})
+
+let finishBtn = document.querySelector('button');
+finishBtn.addEventListener('click', (e) => {
+  let radioBtn = document.querySelector('[name=geom-mode]:checked');
+  if (radioBtn.value === 'polyline') {
+    lines.push({
+      id: +globalID + 1,
+      line_geom: polyline
+    })
+    polyline = [];
+    console.log('lines', lines);
+  }
+  else if (radioBtn.value === 'polygon') {
+    L.polygon(polygon, {color: 'green'}).addTo(mymap);
+    polygons.push({
+      id: globalID + 1,
+      polygon_geom: polygon
+    })
+    polygon = [];
+    console.log('polygons: ', polygons);
+
   }
 })
 
