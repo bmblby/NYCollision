@@ -30,7 +30,18 @@ app.listen(PORT);
 
 // Database handling inserts, changes and deletion
 
-function insertPointsDB(table, data) {
+function insert2DB(data) {
+  let points = data.points;
+  let lineSegments = data.lines;
+  let paths = data.paths;
+  let polygons = data.polygons;
+
+  insertPoints(data.points);
+  insertLines(data.lines);
+
+}
+
+function insertPoints(data) {
   data.forEach((d) => {
     db.none('INSERT INTO points(id, geom) VALUES (${id}, point(${x},${y}))', {
       id: d.id,
@@ -39,7 +50,27 @@ function insertPointsDB(table, data) {
     })
     .then(() => {
       // console.log("DATA: ", data);
-      console.log('successfull insertion into database');
+      console.log('success insert: point id ', d.id);
+    })
+    .catch(error => {
+      console.log("ERROR: ", error);
+    })
+  });
+}
+
+function insertLines(data) {
+  data.forEach((d) => {
+    db.none('INSERT INTO lines(id, geom) Values (${id}, \
+    line((${x1},${y1}),(${x2},${y2})))', {
+      id: d.id,
+      x1: d.line_geom[0].lat,
+      y1: d.line_geom[0].lng,
+      x2: d.line_geom[1].lat,
+      y2: d.line_geom[1].lng
+    })
+    .then(() => {
+      // console.log("DATA: ", data);
+      console.log('success insert:  line id ', d.id);
     })
     .catch(error => {
       console.log("ERROR: ", error);
@@ -60,15 +91,15 @@ app.post('/', (req, res) => {
   }
   else if (d.task === "insert") {
     console.log('inserting into database');
-    insertPointsDB('points', d.points);
+    insert2DB(d.data);
     res.json({
       test: "here goes the server response!"
-    })
+    });
   }
   else {
     res.json({
       test: 'No task specified! Please resend data with task!'
-    })
+    });
   }
 })
 

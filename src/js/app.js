@@ -21,6 +21,7 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 let globalID = 0;
 let points = [];
 let lines = [];
+let paths = [];
 let polygons = [];
 
 let polyline = [];
@@ -81,12 +82,12 @@ finishBtn.addEventListener('click', (e) => {
   let radioBtn = document.querySelector('[name=geom-mode]:checked');
   if (radioBtn.value === 'polyline') {
     globalID += 1;
-    lines.push({
+    paths.push({
       id: globalID,
-      line_geom: polyline
+      paths_geom: polyline
     })
     polyline = [];
-    console.log('lines', lines);
+    console.log('paths', paths);
   }
   else if (radioBtn.value === 'polygon') {
     L.polygon(polygon, {color: 'green'}).addTo(mymap);
@@ -106,6 +107,7 @@ saveBtn.addEventListener('click', (e) => {
   let geometries = {
     points: points,
     lines: lines,
+    paths: paths,
     polygons: polygons
   }
   console.log("send geometries to server: ", geometries);
