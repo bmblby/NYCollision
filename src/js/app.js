@@ -33,8 +33,9 @@ radioBtn.addEventListener("click", (e) => {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       L.circleMarker(e.latlng).addTo(mymap);
+      globalID += 1;
       points.push({
-        id: globalID + 1,
+        id: globalID,
         point_geom: e.latlng
       })
       console.log(points);
@@ -47,8 +48,9 @@ radioBtn.addEventListener("click", (e) => {
       line.push(e.latlng);
       if (line.length == 2) {
         L.polyline(line, {color: 'red'}).addTo(mymap);
+        globalID += 1;
         lines.push({
-          id: globalID + 1,
+          id: globalID,
           line_geom: line
         })
         line = [];
@@ -78,8 +80,9 @@ let finishBtn = document.querySelector('button');
 finishBtn.addEventListener('click', (e) => {
   let radioBtn = document.querySelector('[name=geom-mode]:checked');
   if (radioBtn.value === 'polyline') {
+    globalID += 1;
     lines.push({
-      id: +globalID + 1,
+      id: globalID,
       line_geom: polyline
     })
     polyline = [];
@@ -87,8 +90,9 @@ finishBtn.addEventListener('click', (e) => {
   }
   else if (radioBtn.value === 'polygon') {
     L.polygon(polygon, {color: 'green'}).addTo(mymap);
+    globalID += 1;
     polygons.push({
-      id: globalID + 1,
+      id: globalID,
       polygon_geom: polygon
     })
     polygon = [];
