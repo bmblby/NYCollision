@@ -101,7 +101,37 @@ finishBtn.addEventListener('click', (e) => {
   }
 })
 
+let saveBtn = document.querySelector('[name=save-db]');
+saveBtn.addEventListener('click', (e) => {
+  let geometries = {
+    points: points,
+    lines: lines,
+    polygons: polygons
+  }
+  console.log(JSON.stringify(geometries));
+  send(geometries, 'localhost', 3000);
+});
 
+let clearBtn = document.querySelector('[name=clear-db]');
+
+function send(data, host, port) {
+  let url = 'http://';
+  url = url + host.toString() + ':' + port.toString();
+  data.task = 'insert';
+
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }).then(res => res.json())
+  .catch(error => console.error('Error: ', error))
+  .then((data) => {
+    console.log(data.test);
+  })
+
+}
 
 // test connection to postgres database
 function getGermanyShape() {
