@@ -38,7 +38,7 @@ radioBtn.addEventListener("click", (e) => {
         id: globalID,
         point_geom: e.latlng
       })
-      console.log(points);
+      // console.log(points);
     })
   }
   else if(button === "line") {
@@ -55,7 +55,7 @@ radioBtn.addEventListener("click", (e) => {
         })
         line = [];
       }
-      console.log(lines);
+      // console.log(lines);
     });
   }
   else if(button === "polyline") {
@@ -63,7 +63,7 @@ radioBtn.addEventListener("click", (e) => {
     mymap.addEventListener('click', (e) => {
       polyline.push(e.latlng);
       L.polyline(polyline, {color: 'red'}).addTo(mymap);
-      console.log('polyline: ', polyline);
+      // console.log('polyline: ', polyline);
     });
   }
   else if (button === "polygon") {
@@ -71,7 +71,7 @@ radioBtn.addEventListener("click", (e) => {
     mymap.addEventListener('click', (e) => {
       polygon.push(e.latlng);
       L.polyline(polygon, {color: 'green'}).addTo(mymap);
-      console.log('polygon: ', polygon);
+      // console.log('polygon: ', polygon);
     });
   }
 })
@@ -108,7 +108,7 @@ saveBtn.addEventListener('click', (e) => {
     lines: lines,
     polygons: polygons
   }
-  console.log(JSON.stringify(geometries));
+  console.log("send geometries to server: ", geometries);
   send(geometries, 'localhost', 3000);
 });
 
