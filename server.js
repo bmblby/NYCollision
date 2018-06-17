@@ -12,15 +12,6 @@ const cn = "postgres://giuli:test123@localhost:5432/hard_task";
 const db = pgp(cn);
 module.export = db;
 
-// request to database
-db.any('SELECT * FROM germany',
-  [true]
-).then((data) => {
-  // console.log(data);
-}).catch((data) => {
-  // console.log(data);
-})
-
 // Basic server setup
 var DIST_DIR = path.join(__dirname, "dist"),
     PORT = 3000,
@@ -37,6 +28,25 @@ app.get("*", function (req, res) {
 
 app.listen(PORT);
 
+// Database handling inserts, changes and deletion
+
+function insertPointsDB(table, data) {
+  data.forEach((d) => {
+    db.none('INSERT INTO points(id, geom) VALUES (${id}, point(${x},${y}))', {
+      id: d.id,
+      x: d.point_geom.lat,
+      y: d.point_geom.lng
+    })
+    .then(() => {
+      // console.log("DATA: ", data);
+      console.log('successfull insertion into database');
+    })
+    .catch(error => {
+      console.log("ERROR: ", error);
+    })
+  })
+}
+
 app.post('/', (req, res) => {
   let d = req.body;
   console.log(d);
@@ -49,9 +59,11 @@ app.post('/', (req, res) => {
     });
   }
   else if (d.task === "insert") {
-    db.none(
-
-    )
+    console.log('inserting into database');
+    insertPointsDB('points', d.points);
+    res.json({
+      test: "here goes the server response!"
+    })
   }
   else {
     res.json({
