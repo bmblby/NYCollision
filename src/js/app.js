@@ -29,8 +29,8 @@ let polygon = [];
 
 let radioBtn = document.querySelector('.radio-btn');
 radioBtn.addEventListener("click", (e) => {
-  let button = e.originalTarget.value;
-  if (button === "point") {
+  let button = document.querySelector('[name=geom-mode]:checked');
+  if (button.value === "point") {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       L.circleMarker(e.latlng).addTo(mymap);
@@ -42,7 +42,7 @@ radioBtn.addEventListener("click", (e) => {
       // console.log(points);
     })
   }
-  else if(button === "line") {
+  else if(button.value === "line") {
     var line = [];
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
@@ -59,7 +59,7 @@ radioBtn.addEventListener("click", (e) => {
       // console.log(lines);
     });
   }
-  else if(button === "polyline") {
+  else if(button.value === "polyline") {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       polyline.push(e.latlng);
@@ -67,7 +67,7 @@ radioBtn.addEventListener("click", (e) => {
       // console.log('polyline: ', polyline);
     });
   }
-  else if (button === "polygon") {
+  else if (button.value === "polygon") {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       polygon.push(e.latlng);
