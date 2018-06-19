@@ -31,15 +31,26 @@ let radioBtn = document.querySelector('.radio-btn');
 radioBtn.addEventListener("click", (e) => {
   let button = document.querySelector('[name=geom-mode]:checked');
   if (button.value === "point") {
+    let markerOptions = {
+      radius: 8,
+      fillColor: '#ff7800',
+      color: '#000',
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+    }
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
-      L.circleMarker(e.latlng).addTo(mymap);
+      let point = L.circleMarker(e.latlng).toGeoJSON();
+      L.geoJSON(point, {
+        pointToLayer: (feat, latLng) => {
+          return L.circleMarker(latLng, markerOptions);
+        }
+      }).addTo(mymap);
       globalID += 1;
-      points.push({
-        id: globalID,
-        point_geom: e.latlng
-      })
-      // console.log(points);
+      point.properties.id = globalID;
+      points.push(point)
+      console.log(point);
     })
   }
   else if(button.value === "line") {
@@ -48,12 +59,11 @@ radioBtn.addEventListener("click", (e) => {
     mymap.addEventListener('click', (e) => {
       line.push(e.latlng);
       if (line.length == 2) {
-        L.polyline(line, {color: 'red'}).addTo(mymap);
+        let lineGeo = L.polyline(line, {color: 'red'}).toGeoJSON();
+        L.geoJSON(lineGeo).addTo(mymap);
         globalID += 1;
-        lines.push({
-          id: globalID,
-          line_geom: line
-        })
+        lineGeo.properties.id = globalID;
+        lines.push(lineGeo)
         line = [];
       }
       // console.log(lines);
@@ -71,7 +81,7 @@ radioBtn.addEventListener("click", (e) => {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       polygon.push(e.latlng);
-      L.polyline(polygon, {color: 'green'}).addTo(mymap);
+      L.polyline(polygon, {color: 'steelblue'}).addTo(mymap);
       // console.log('polygon: ', polygon);
     });
   }
@@ -82,20 +92,22 @@ finishBtn.addEventListener('click', (e) => {
   let radioBtn = document.querySelector('[name=geom-mode]:checked');
   if (radioBtn.value === 'polyline') {
     globalID += 1;
-    paths.push({
-      id: globalID,
-      paths_geom: polyline
-    })
+    let polylineGeo = L.polyline(polyline, {color: 'red'})
+      .toGeoJSON();
+
+    polylineGeo.properties.id = globalID;
+    paths.push(polylineGeo);
     polyline = [];
     console.log('paths', paths);
   }
   else if (radioBtn.value === 'polygon') {
-    L.polygon(polygon, {color: 'green'}).addTo(mymap);
+    let polygonGeo = L.polygon(polygon, {color: 'green'})
+      .toGeoJSON();
+
     globalID += 1;
-    polygons.push({
-      id: globalID,
-      polygon_geom: polygon
-    })
+    polygonGeo.properties.id = globalID;
+    L.geoJSON(polygonGeo).addTo(mymap);
+    polygons.push(polygonGeo);
     polygon = [];
     console.log('polygons: ', polygons);
 

@@ -31,51 +31,42 @@ app.listen(PORT);
 // Database handling inserts, changes and deletion
 
 function insert2DB(data) {
-  let points = data.points;
-  let lineSegments = data.lines;
-  let paths = data.paths;
-  let polygons = data.polygons;
-
-  insertPoints(data.points);
-  insertLines(data.lines);
-
+  if(data.points.length !== 0) {
+    insertTable(data.points, 'points');
+  }
+  if(data.lines.length !== 0) {
+    insertTable(data.lines, 'lines');
+  }
+  if(data.paths.length !== 0) {
+    insertTable(data.paths, 'lines');
+  }
+  if(data.polygons.length !== 0) {
+    insertTable(data.polygons, 'polygons');
+  }
 }
 
-function insertPoints(data) {
+function insertTable(data, table) {
   data.forEach((d) => {
-    db.none('INSERT INTO points(id, geom) VALUES (${id}, point(${x},${y}))', {
-      id: d.id,
-      x: d.point_geom.lat,
-      y: d.point_geom.lng
+    console.log(d);
+    d.geometry.crs = {
+      type: 'name',
+      properties: {
+        name: 'EPSG:4326'
+      }
+    }
+    db.none('INSERT INTO ' + table.toString() + '(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
+      id: d.properties.id,
+      geoJSON: d.geometry
     })
     .then(() => {
       // console.log("DATA: ", data);
-      console.log('success insert: point id ', d.id);
+      console.log('success insert: ' + d.geometry.type
+                  + ' id: ', d.properties.id);
     })
     .catch(error => {
       console.log("ERROR: ", error);
     })
   });
-}
-
-function insertLines(data) {
-  data.forEach((d) => {
-    db.none('INSERT INTO lines(id, geom) Values (${id}, \
-    line((${x1},${y1}),(${x2},${y2})))', {
-      id: d.id,
-      x1: d.line_geom[0].lat,
-      y1: d.line_geom[0].lng,
-      x2: d.line_geom[1].lat,
-      y2: d.line_geom[1].lng
-    })
-    .then(() => {
-      // console.log("DATA: ", data);
-      console.log('success insert:  line id ', d.id);
-    })
-    .catch(error => {
-      console.log("ERROR: ", error);
-    })
-  })
 }
 
 app.post('/', (req, res) => {
