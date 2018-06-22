@@ -1,5 +1,9 @@
 'use strict';
 
+const fs = require('fs');
+const turf = require('@turf/turf');
+const array = require('lodash/array');
+
 const path = require("path");
 const express = require("express");
 const bodyParser = require('body-parser');
@@ -69,21 +73,203 @@ function insertTable(data, table) {
   });
 }
 
+function createGermanyBorder() {
+  fs.readFile('./data/germany.json',
+    {encoding: 'UTF-8'},
+    (err, data) => {
+
+    let gerGeoJSON = JSON.parse(data);
+    gerGeoJSON.geometry.crs = {
+      type: 'name',
+      properties: {
+        name: 'EPSG:4326'
+      }
+    }
+    db.none('INSERT INTO germanyjson(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
+      id: 1,
+      geoJSON: gerGeoJSON.geometry
+    })
+    .then(() => {
+      // console.log("DATA: ", data);
+      console.log('success insert: ' + gerGeoJSON.geometry.type
+                  + ' id: 1');
+    })
+    .catch(error => {
+      console.log("ERROR: ", error);
+    })
+  })
+}
+// createGermanyBorder();
+
+function pointsInGer() {
+  db.one('SELECT st_asgeojson(geom, 10, 1) FROM germanyjson')
+    .then((data) => {
+      let globalID = 0;
+      let gerGeoJSON = JSON.parse(data.st_asgeojson);
+      let points = turf.randomPoint(20000, {bbox: gerGeoJSON.bbox});
+      let pointsGer = turf.pointsWithinPolygon(points, gerGeoJSON);
+      pointsGer.features = array.slice(pointsGer.features, 1, 10001);
+
+      pointsGer.features.forEach((feat) => {
+        globalID += 1;
+        feat.properties = {
+          id: globalID
+        }
+        feat.geometry.crs = {
+          type: 'name',
+          properties: {
+            name: 'EPSG:4326'
+          }
+        }
+
+        db.none('INSERT INTO points(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
+            id: feat.properties.id,
+            geoJSON: feat.geometry
+          })
+          .then()
+          .catch((error) => {
+            console.log('ERROR: ', error);
+          });
+      })
+      console.log('inserted 10000 points within boundary of Germany');
+    })
+    .catch((error) => {
+      console.log('ERROR: ', error);
+    });
+}
+
+
 app.post('/', (req, res) => {
   let d = req.body;
   console.log(d);
 
-  if(d.test) {
-    let string = d.test;
-    string = string.replace(/Test/i, "fucking Test");
-    res.json({
-      test: string
+  if(d.task === 'germany') {
+    let gerGeoJSON = {};
+    db.task(t => {
+      return t.one('SELECT st_asgeojson(geom, 10, 1) FROM germanyjson')
+      .then((data) => {
+        let globalID = 0;
+        gerGeoJSON = JSON.parse(data.st_asgeojson);
+        let points = turf.randomPoint(20000, {bbox: gerGeoJSON.bbox});
+        let pointsGer = turf.pointsWithinPolygon(points, gerGeoJSON);
+        pointsGer.features = array.slice(pointsGer.features, 1, 10001);
+
+        pointsGer.features.forEach((feat) => {
+          globalID += 1;
+          feat.properties = {
+            id: globalID
+          }
+          feat.geometry.crs = {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
+
+          t.none('INSERT INTO points(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
+              id: feat.properties.id,
+              geoJSON: feat.geometry
+            })
+            .then(d => {})
+        })
+
+        console.log('inserted 10000 points within boundary of Germany');
+
+        return t.many('SELECT st_asgeojson(geom, 10) FROM points LIMIT 50')
+          .then(points => {
+            let Points = [];
+            points.forEach(point => {
+              Points.push(turf.feature(JSON.parse(point.st_asgeojson)));
+            })
+            return {
+              ger:  gerGeoJSON,
+              point: turf.featureCollection(Points)
+            }
+          })
+      })
+    }).then(data => {
+      let pts = data.point;
+      pts.features.forEach((p, i) => {
+        let search = pts.features.filter(a => {
+          if(!turf.booleanEqual(a, p)) {
+            return true;
+          }
+        });
+        let searchCol = turf.featureCollection(search);
+        let nearest = turf.nearestPoint(p, searchCol);
+        let minDist = turf.distance(p, nearest);
+        pts.features[i].properties.min = minDist;
+        // console.log(p, nearest, minDist);
+      })
+      res.json({
+        points: pts,
+        ger: gerGeoJSON
+      });
+
+    })
+    .catch((error) => {
+      console.log('ERROR: ', error);
     });
+  }
+  else if(d.task === 'task2') {
+    db.task(t => {
+      return t.many('SELECT st_asgeojson(geom, 10) FROM points')
+        .then(points => {
+          let Points = [];
+          return t.many('SELECT st_asgeojson(geom, 10) FROM polygons')
+            .then(polys => {
+              let Polys = [];
+              polys.forEach(poly => {
+                Polys.push(turf.feature(JSON.parse(poly.st_asgeojson)));
+              })
+              points.forEach(point => {
+                Points.push(turf.feature(JSON.parse(point.st_asgeojson)));
+              })
+              return {
+                point: turf.featureCollection(Points),
+                poly: turf.featureCollection(Polys)
+              };
+            });
+          // return JSON.parse(p.st_asgeojson)
+        })
+    }).then((d) => {
+        console.log(d);
+        let ptsWithin = turf.pointsWithinPolygon(d.point, d.poly);
+
+        res.json(ptsWithin);
+    })
+    .catch((error) => {
+      console.log('ERROR: ', error);
+    });
+  }
+  else if(d.task === 'task4') {
+    // db.task(t => {
+    //   return t.many('SELECT st_asgeojson(geom, 10) FROM lines')
+    //     .then(lines => {
+    //       let Lines = [];
+    //       return t.many('SELECT st_asgeojson(geom, 10) FROM polygons')
+    //         .then(polys => {
+    //           let Polys = [];
+    //           polys.forEach(poly => {
+    //             Polys.push(turf.feature(JSON.parse(poly.st_asgeojson)));
+    //           })
+    //           points.forEach(point => {
+    //             Points.push(turf.feature(JSON.parse(point.st_asgeojson)));
+    //           })
+    //           return {
+    //             lines: turf.featureCollection(Lines),
+    //             poly: turf.featureCollection(Polys)
+    //           };
+    //         })
+    //     })
+    // }).then(data => {
+    //   let lines = data.lines;
+    //   let contain =
+    // })
   }
   else if (d.task === "clear") {
     db.none('DELETE FROM points *');
     db.none('DELETE FROM lines *');
-    db.none('DELETE FROM paths *');
     db.none('DELETE FROM polygons *');
 
     res.json({
