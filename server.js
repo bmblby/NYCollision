@@ -21,14 +21,14 @@ var DIST_DIR = path.join(__dirname, "dist"),
     PORT = 3000,
     app = express();
 
+// //Send index.html when the user access the web
+// app.get("/", function (req, res) {
+//   res.sendFile(path.join(DIST_DIR, "index.html"));
+// });
+// 
 //Serving the files on the dist folder
 app.use(express.static(DIST_DIR));
 app.use(bodyParser.json());
-
-//Send index.html when the user access the web
-app.get("*", function (req, res) {
-  res.sendFile(path.join(DIST_DIR, "index.html"));
-});
 
 app.listen(PORT);
 
@@ -282,6 +282,43 @@ app.post('/', (req, res) => {
     insert2DB(d.data);
     res.json({
       test: "here goes the server response!"
+    });
+  }
+  else if (d.task === "loadDatabase") {
+    console.log('requesting new page');
+    let pointQ = 'SELECT st_asgeojson(geom) FROM points';
+    let lineQ = 'SELECT st_asgeojson(geom) FROM lines';
+    let polygonQ = 'SELECT st_asgeojson(geom) FROM polygons';
+
+    console.log('query server for existing geometries');
+    db.task(t => {
+      return t.any(pointQ)
+        .then(points => {
+          return t.any(lineQ)
+            .then(lines => {
+              return t.any(polygonQ)
+                .then(polygons => {
+                  return {
+                    points: points.map(p => JSON.parse(p.st_asgeojson)),
+                    lines: lines.map(l => JSON.parse(l.st_asgeojson)),
+                    polygons: polygons.map(pol => JSON.parse(pol.st_asgeojson))
+                  }
+                })
+            })
+        })
+    })
+    .then(data => {
+      // console.log(data);
+      let features = [];
+      for(let prop in data) {
+        data[prop].forEach(d => features.push(turf.feature(d)));
+      }
+      let featCol = turf.featureCollection(features);
+      res.json(featCol);
+      // console.log(featCol);
+    })
+    .catch(error => {
+      console.log('ERROR: ', error);
     });
   }
   else {

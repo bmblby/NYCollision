@@ -19,6 +19,38 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 
 // draw points, lines and Polygons
 
+window.onload = function() {
+  let url = 'http://localhost:3000';
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      "task": "loadDatabase"
+    }),
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }).then(res => res.json())
+  .catch(error => console.error('Error: ', error))
+  .then((res) => {
+    console.log(res);
+    let markerOptions = {
+      radius: 5,
+      fillColor: "#ff1700",
+      color: "#ffffff",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+    };
+    L.geoJSON(res, {
+      pointToLayer: (feature, latLng) => {
+        if(feature.geometry.type === 'Point') {
+          return L.circleMarker(latLng, markerOptions);
+        }
+      }
+    }).addTo(mymap);
+  })
+}
+
 let globalID = 0;
 let points = [];
 let lines = [];
@@ -33,9 +65,9 @@ radioBtn.addEventListener("click", (e) => {
   let button = document.querySelector('[name=geom-mode]:checked');
   if (button.value === "point") {
     let markerOptions = {
-      radius: 8,
-      fillColor: '#ff7800',
-      color: '#000',
+      radius: 5,
+      fillColor: "#ff1700",
+      color: "#ffffff",
       weight: 1,
       opacity: 1,
       fillOpacity: 0.8
@@ -60,7 +92,7 @@ radioBtn.addEventListener("click", (e) => {
     mymap.addEventListener('click', (e) => {
       line.push(e.latlng);
       if (line.length == 2) {
-        let lineGeo = L.polyline(line, {color: 'red'}).toGeoJSON();
+        let lineGeo = L.polyline(line, {color: '#3388ff'}).toGeoJSON();
         L.geoJSON(lineGeo).addTo(mymap);
         globalID += 1;
         lineGeo.properties.id = globalID;
@@ -74,7 +106,7 @@ radioBtn.addEventListener("click", (e) => {
     mymap.removeEventListener();
     mymap.addEventListener('click', (e) => {
       polyline.push(e.latlng);
-      L.polyline(polyline, {color: 'red'}).addTo(mymap);
+      L.polyline(polyline, {color: '#3388ff'}).addTo(mymap);
       // console.log('polyline: ', polyline);
     });
   }
@@ -223,15 +255,15 @@ task2.addEventListener('click', (e) => {
   .catch(error => console.error('Error: ', error))
   .then((res) => {
     console.log(res);
-    res.features.forEach((feat) => {
-      let y = feat.geometry.coordinates[0];
-      let x = feat.geometry.coordinates[1];
-      L.circleMarker([x, y], {radius: 2, color: 'red'}).addTo(mymap);
-      // L.geoJSON(geom).addTo(mymap);
-    })
-    // L.geoJSON(res, {
-    //   style: feat => {return {color: 'black'}}
-    // }).addTo(mymap);
+    // res.features.forEach((feat) => {
+    //   let y = feat.geometry.coordinates[0];
+    //   let x = feat.geometry.coordinates[1];
+    //   L.circleMarker([x, y], {radius: 2, color: 'red'}).addTo(mymap);
+    //   // L.geoJSON(geom).addTo(mymap);
+    // })
+    // // L.geoJSON(res, {
+    // //   style: feat => {return {color: 'black'}}
+    // // }).addTo(mymap);
   })
 })
 
