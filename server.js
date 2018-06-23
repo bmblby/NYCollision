@@ -122,7 +122,7 @@ function pointsInGer() {
           }
         }
 
-        db.none('INSERT INTO points(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
+        db.none('INSERT INTO pointst1(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
             id: feat.properties.id,
             geoJSON: feat.geometry
           })
@@ -137,6 +137,7 @@ function pointsInGer() {
       console.log('ERROR: ', error);
     });
 }
+// pointsInGer();
 
 
 app.post('/', (req, res) => {
