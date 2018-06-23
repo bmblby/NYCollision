@@ -35,7 +35,7 @@ window.onload = function() {
     console.log(res);
     let markerOptions = {
       radius: 5,
-      fillColor: "#ff1700",
+      fillColor: "#3388ff",
       color: "#ffffff",
       weight: 1,
       opacity: 1,
@@ -66,7 +66,7 @@ radioBtn.addEventListener("click", (e) => {
   if (button.value === "point") {
     let markerOptions = {
       radius: 5,
-      fillColor: "#ff1700",
+      fillColor: "#3388ff",
       color: "#ffffff",
       weight: 1,
       opacity: 1,
