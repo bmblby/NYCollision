@@ -255,15 +255,24 @@ task2.addEventListener('click', (e) => {
   .catch(error => console.error('Error: ', error))
   .then((res) => {
     console.log(res);
-    // res.features.forEach((feat) => {
-    //   let y = feat.geometry.coordinates[0];
-    //   let x = feat.geometry.coordinates[1];
-    //   L.circleMarker([x, y], {radius: 2, color: 'red'}).addTo(mymap);
-    //   // L.geoJSON(geom).addTo(mymap);
-    // })
-    // // L.geoJSON(res, {
-    // //   style: feat => {return {color: 'black'}}
-    // // }).addTo(mymap);
+    let markerOptions = {
+      radius: 5,
+      fillColor: "#ff0000",
+      color: "#ffffff",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+    };
+    L.geoJSON(res, {
+      pointToLayer: (feature, latLng) => {
+        if(feature.geometry.type === 'Point') {
+          return L.circleMarker(latLng, markerOptions);
+        }
+      }
+    }).addTo(mymap);
+    // L.geoJSON(res, {
+    //   style: feat => {return {color: feat.properties.color}}
+    // }).addTo(mymap);
   })
 })
 

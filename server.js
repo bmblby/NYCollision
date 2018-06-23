@@ -214,30 +214,46 @@ app.post('/', (req, res) => {
   }
   else if(d.task === 'task2') {
     db.task(t => {
-      return t.many('SELECT st_asgeojson(geom, 10) FROM points')
-        .then(points => {
-          let Points = [];
-          return t.many('SELECT st_asgeojson(geom, 10) FROM polygons')
-            .then(polys => {
-              let Polys = [];
-              polys.forEach(poly => {
-                Polys.push(turf.feature(JSON.parse(poly.st_asgeojson)));
-              })
-              points.forEach(point => {
-                Points.push(turf.feature(JSON.parse(point.st_asgeojson)));
-              })
+      // query points inside polygon
+      let query = "SELECT st_asgeojson(poi. geom) \
+        FROM polygons pol \
+          JOIN points poi ON (st_within(poi.geom, pol.geom))";
+
+      // query points on polygon border
+      let query2 = "SELECT st_asgeojson(points.geom) \
+        FROM points INNER JOIN polygons\
+        ON st_dwithin(st_exteriorring(polygons.geom),points.geom,0.001)"
+
+      return t.any(query)
+        .then(ptsInside => {
+          // let Points = [];
+          return t.any(query2)
+            .then(ptsBorder => {
               return {
-                point: turf.featureCollection(Points),
-                poly: turf.featureCollection(Polys)
+                inside: ptsInside.map(p => JSON.parse(p.st_asgeojson)),
+                border: ptsBorder.map(p => JSON.parse(p.st_asgeojson))
               };
             });
-          // return JSON.parse(p.st_asgeojson)
         })
     }).then((d) => {
         console.log(d);
-        let ptsWithin = turf.pointsWithinPolygon(d.point, d.poly);
-
-        res.json(ptsWithin);
+        let features = [];
+        for(let prop in d) {
+          d[prop].forEach(f => {
+            if(prop === "inside" && d[prop].length != 0) {
+              let feat = turf.feature(f);
+              feat.properties.color = '#ff0000';
+              features.push(feat);
+            }
+            else if(prop === 'border' && d[prop].length != 0) {
+              let feat = turf.feature(f);
+              feat.properties.color = '#ff8200';
+              features.push(feat);
+            }
+          });
+        }
+        let featCol = turf.featureCollection(features);
+        res.json(featCol);
     })
     .catch((error) => {
       console.log('ERROR: ', error);
