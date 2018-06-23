@@ -278,18 +278,35 @@ task2.addEventListener('click', (e) => {
 
 // TASK 3
 let task3 = document.querySelector('[name=task-3]')
-task1.addEventListener('click', (e) => {
+task3.addEventListener('click', (e) => {
   // getGermanyShape();
 })
 
 // TASK 4
 let task4 = document.querySelector('[name=task-4]')
-task1.addEventListener('click', (e) => {
-  // getGermanyShape();
+task4.addEventListener('click', (e) => {
+  let url = 'http://localhost:3000';
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      "task": "task4"
+    }),
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }).then(res => res.json())
+  .catch(error => console.error('Error: ', error))
+  .then((res) => {
+    console.log(res);
+    L.geoJSON(res, {
+      style: f => {return {color: f.properties.color}}
+    }).addTo(mymap);
+  })
+
 })
 
 // TASK 5
 let task5 = document.querySelector('[name=task-5]')
-task1.addEventListener('click', (e) => {
+task5.addEventListener('click', (e) => {
   // getGermanyShape();
 })

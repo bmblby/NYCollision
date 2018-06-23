@@ -260,29 +260,52 @@ app.post('/', (req, res) => {
     });
   }
   else if(d.task === 'task4') {
-    // db.task(t => {
-    //   return t.many('SELECT st_asgeojson(geom, 10) FROM lines')
-    //     .then(lines => {
-    //       let Lines = [];
-    //       return t.many('SELECT st_asgeojson(geom, 10) FROM polygons')
-    //         .then(polys => {
-    //           let Polys = [];
-    //           polys.forEach(poly => {
-    //             Polys.push(turf.feature(JSON.parse(poly.st_asgeojson)));
-    //           })
-    //           points.forEach(point => {
-    //             Points.push(turf.feature(JSON.parse(point.st_asgeojson)));
-    //           })
-    //           return {
-    //             lines: turf.featureCollection(Lines),
-    //             poly: turf.featureCollection(Polys)
-    //           };
-    //         })
-    //     })
-    // }).then(data => {
-    //   let lines = data.lines;
-    //   let contain =
-    // })
+    db.task(t => {
+      // query points inside polygon
+      let query = "SELECT st_asgeojson(lin. geom) \
+          FROM polygons pol \
+          JOIN lines lin ON (st_within(lin.geom, pol.geom));";
+
+      // query points on polygon border
+      let query2 = "SELECT st_asgeojson(lines.geom) \
+        FROM lines INNER JOIN polygons \
+        ON st_dwithin(st_exteriorring(polygons.geom),lines.geom,0.001);"
+
+      return t.any(query)
+        .then(linesIn => {
+          // let Points = [];
+          return t.any(query2)
+            .then(linesBord => {
+              return {
+                inside: linesIn.map(p => JSON.parse(p.st_asgeojson)),
+                border: linesBord.map(p => JSON.parse(p.st_asgeojson))
+              };
+            });
+        })
+    }).then((d) => {
+        console.log('\n\nresults from database: \n', d);
+        let features = [];
+        for(let prop in d) {
+          d[prop].forEach(f => {
+            if(prop === "inside" && d[prop].length != 0) {
+              let feat = turf.feature(f);
+              feat.properties.color = '#ff0000';
+              features.push(feat);
+            }
+            else if(prop === 'border' && d[prop].length != 0) {
+              let feat = turf.feature(f);
+              feat.properties.color = '#ff8200';
+              features.push(feat);
+            }
+          });
+        }
+        let featCol = turf.featureCollection(features);
+        console.log(featCol);
+        res.json(featCol);
+    })
+    .catch((error) => {
+      console.log('ERROR: ', error);
+    });
   }
   else if (d.task === "clear") {
     db.none('DELETE FROM points *');
