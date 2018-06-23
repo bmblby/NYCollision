@@ -51,15 +51,15 @@ function insert2DB(data) {
 
 function insertTable(data, table) {
   data.forEach((d) => {
-    console.log(d);
+    console.log('Object to insert: \n',d);
     d.geometry.crs = {
       type: 'name',
       properties: {
         name: 'EPSG:4326'
       }
     }
-    db.none('INSERT INTO ' + table.toString() + '(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
-      id: d.properties.id,
+    db.none('INSERT INTO ' + table.toString() + '(geom)\
+     VALUES (ST_GeomFromGeoJSON(${geoJSON}))', {
       geoJSON: d.geometry
     })
     .then(() => {
