@@ -284,7 +284,7 @@ app.post('/', (req, res) => {
         name: "EPSG:4326"
       }
     };
-    console.log('Point: ', d.point.geometry);
+    console.log('\n\nPoint: ', d.point.geometry.coordinates);
     db.task(t => {
       // query get line from clicked position
       let query = "SELECT st_asewkt(l.geom) \
@@ -294,22 +294,16 @@ app.post('/', (req, res) => {
                     5000.0))";
 
       // query get points to draw line to nearest point
-      let query2 = "WITH index_query_lines AS (\
+      let query2 = "\
         SELECT\
           st_asgeojson(\
-            st_closestpoint(\
+            st_shortestline(\
               ${line}::geometry,\
               p.geom\
             )\
-          ) as ptOnLine,\
-          p.id,\
-          st_asgeojson(p.geom) as nearestN\
-        FROM points p, lines l\
-        ORDER BY p.geom <#> ${line}::geometry limit 1\
-        )\
-        SELECT *\
-        FROM index_query_lines\
-        ORDER BY ptOnLine;";
+          ) as line\
+        FROM points p\
+        ORDER BY p.geom <-> ${line}::geometry limit 1";
 
       return t.oneOrNone(query, {
         point: d.point.geometry
@@ -321,10 +315,9 @@ app.post('/', (req, res) => {
               line: line.st_asewkt
             })
               .then(points => {
-                console.log('as EWKT: ', points);
+                console.log('RESULT NN search:\n', points);
                 return {
-                  ptOnLine: JSON.parse(points.ptonline),
-                  nearestN: JSON.parse(points.nearestn)
+                  line: JSON.parse(points.line)
                 };
               });
           }
@@ -338,13 +331,10 @@ app.post('/', (req, res) => {
           console.log("ERROR: ", error);
         })
     }).then((d) => {
-        if(d.ptOnLine != undefined ) {
-          console.log('\n\nresults from database: \n', d);
-          let pt1 = turf.getCoord(d.ptOnLine);
-          let pt2 = turf.getCoord(d.nearestN);
-          let line = turf.lineString([pt1, pt2]);
-          console.log(line);
-          res.json(line);
+        if(d.line != undefined ) {
+          // console.log('results from database: \n', d);
+          // console.log(d.line);
+          res.json(d.line);
         }
         else {
           res.json({
