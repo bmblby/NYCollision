@@ -111,10 +111,6 @@ function pointsInGer() {
       pointsGer.features = array.slice(pointsGer.features, 1, 10001);
 
       pointsGer.features.forEach((feat) => {
-        globalID += 1;
-        feat.properties = {
-          id: globalID
-        }
         feat.geometry.crs = {
           type: 'name',
           properties: {
@@ -122,8 +118,7 @@ function pointsInGer() {
           }
         }
 
-        db.none('INSERT INTO pointst1(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
-            id: feat.properties.id,
+        db.none('INSERT INTO pointst1(geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
             geoJSON: feat.geometry
           })
           .then()
