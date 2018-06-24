@@ -278,14 +278,13 @@ app.post('/', (req, res) => {
     });
   }
   else if(d.task === 'task5') {
-    let point = turf.point([d.point.lat, d.point.lng]);
-    point.geometry.crs = {
+    d.point.geometry.crs = {
       type: "name",
       properties: {
         name: "EPSG:4326"
       }
     };
-    console.log('Point: ', point.geometry);
+    console.log('Point: ', d.point.geometry);
     db.task(t => {
       // query get line from clicked position
       let query = "SELECT st_asewkt(l.geom) \
@@ -313,7 +312,7 @@ app.post('/', (req, res) => {
         ORDER BY ptOnLine;";
 
       return t.oneOrNone(query, {
-        point: point.geometry
+        point: d.point.geometry
       })
         .then(line => {
           console.log('Result line: ',line);

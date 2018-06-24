@@ -309,12 +309,8 @@ task4.addEventListener('click', (e) => {
 function clickLine(e) {
   let point = mymap.mouseEventToLatLng(e);
   console.log(point);
-  let lat = point.lat;
-  let lng = point.lng;
-  let newP = {
-    lng: lat,
-    lat: lng
-  }
+  let newP = turf.point([point.lng, point.lat]);
+  console.log(newP);
   let url = 'http://localhost:3000';
   return fetch(url, {
     method: 'POST',
