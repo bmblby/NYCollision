@@ -159,7 +159,7 @@ app.post('/', (req, res) => {
           from pointst1\
           order  by points.geom <-> geom\
                    limit 2) as p1\
-        order by distance desc limit 5000')
+        order by distance desc limit 10000')
       .then((data) => {
         return t.one("SELECT st_asgeojson(geom) FROM germanyjson")
           .then(ger => {

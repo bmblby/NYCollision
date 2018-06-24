@@ -20,6 +20,10 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 // draw points, lines and Polygons
 
 window.onload = function() {
+  drawFromDatabase();
+}
+
+function drawFromDatabase() {
   let url = 'http://localhost:3000';
   return fetch(url, {
     method: 'POST',
