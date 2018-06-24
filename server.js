@@ -25,7 +25,7 @@ var DIST_DIR = path.join(__dirname, "dist"),
 // app.get("/", function (req, res) {
 //   res.sendFile(path.join(DIST_DIR, "index.html"));
 // });
-// 
+//
 //Serving the files on the dist folder
 app.use(express.static(DIST_DIR));
 app.use(bodyParser.json());
@@ -144,68 +144,40 @@ app.post('/', (req, res) => {
   let d = req.body;
   console.log(d);
 
-  if(d.task === 'germany') {
-    let gerGeoJSON = {};
+  if(d.task === 'task1') {
     db.task(t => {
-      return t.one('SELECT st_asgeojson(geom, 10, 1) FROM germanyjson')
+      return t.any('select points.id, \
+          st_asgeojson(points.geom),\
+          p1.id as p1_id,\
+          ST_Distance(geography(p1.geom), geography(points.geom)) as distance\
+        from\
+          (select distinct on(p2.geom)*\
+          from pointst1 p2\
+          where p2.id is not null) as points\
+        cross join lateral\
+          (select  id, geom\
+          from pointst1\
+          order  by points.geom <-> geom\
+                   limit 2) as p1\
+        order by distance desc limit 5000')
       .then((data) => {
-        let globalID = 0;
-        gerGeoJSON = JSON.parse(data.st_asgeojson);
-        let points = turf.randomPoint(20000, {bbox: gerGeoJSON.bbox});
-        let pointsGer = turf.pointsWithinPolygon(points, gerGeoJSON);
-        pointsGer.features = array.slice(pointsGer.features, 1, 10001);
-
-        pointsGer.features.forEach((feat) => {
-          globalID += 1;
-          feat.properties = {
-            id: globalID
-          }
-          feat.geometry.crs = {
-            type: 'name',
-            properties: {
-              name: 'EPSG:4326'
-            }
-          }
-
-          t.none('INSERT INTO points(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
-              id: feat.properties.id,
-              geoJSON: feat.geometry
-            })
-            .then(d => {})
-        })
-
-        console.log('inserted 10000 points within boundary of Germany');
-
-        return t.many('SELECT st_asgeojson(geom, 10) FROM points LIMIT 50')
-          .then(points => {
-            let Points = [];
-            points.forEach(point => {
-              Points.push(turf.feature(JSON.parse(point.st_asgeojson)));
-            })
+        return t.one("SELECT st_asgeojson(geom) FROM germanyjson")
+          .then(ger => {
+            // console.log(data);
+            let featCol = turf.featureCollection(data.map(f => {
+              let feat = turf.feature(JSON.parse(f.st_asgeojson));
+              feat.properties.dist = f.distance;
+              return feat;
+            }))
             return {
-              ger:  gerGeoJSON,
-              point: turf.featureCollection(Points)
+              points: featCol,
+              ger: JSON.parse(ger.st_asgeojson)
             }
           })
       })
     }).then(data => {
-      let pts = data.point;
-      pts.features.forEach((p, i) => {
-        let search = pts.features.filter(a => {
-          if(!turf.booleanEqual(a, p)) {
-            return true;
-          }
-        });
-        let searchCol = turf.featureCollection(search);
-        let nearest = turf.nearestPoint(p, searchCol);
-        let minDist = turf.distance(p, nearest);
-        pts.features[i].properties.min = minDist;
-        // console.log(p, nearest, minDist);
-      })
-      res.json({
-        points: pts,
-        ger: gerGeoJSON
-      });
+      // console.log(data);
+      res.json(data);
 
     })
     .catch((error) => {

@@ -195,7 +195,7 @@ function getGermanyShape() {
   return fetch(url, {
     method: 'POST',
     body: JSON.stringify({
-      "task": "germany"
+      "task": "task1"
     }),
     headers: new Headers({
       'Content-Type': 'application/json'
@@ -207,28 +207,24 @@ function getGermanyShape() {
     L.geoJSON(res.ger).addTo(mymap);
 
     let min = d3.min(res.points.features, (feat) => {
-        return feat.properties.min;
+        return feat.properties.dist;
     })
     let max = d3.max(res.points.features, (feat) => {
-        return feat.properties.min;
+        return feat.properties.dist;
     })
     console.log(min, max);
     let scale = d3.scaleLinear()
       .domain([min, max])
       .range([0.1, 10])
 
-    res.points.features.forEach((feat) => {
-      let y = feat.geometry.coordinates[0];
-      let x = feat.geometry.coordinates[1];
-      L.circleMarker([x, y], {radius: scale(feat.properties.min), color: 'red'}).addTo(mymap);
-    })
-
-    // L.geoJSON(res.points, {
-    //   style: (feat) => {
-    //     let r = scale(feat.properties.min);
-    //     return {radius: r}
-    //   }
-    // })
+    L.geoJSON(res.points, {
+      pointToLayer: (feat, latLng) => {
+        return L.circleMarker(latLng, {
+          radius: scale(feat.properties.dist),
+          color: 'red'
+        });
+      }
+    }).addTo(mymap);
   })
 }
 
