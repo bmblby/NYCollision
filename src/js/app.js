@@ -36,7 +36,6 @@ function drawFromDatabase() {
   }).then(res => res.json())
   .catch(error => console.error('Error: ', error))
   .then((res) => {
-    console.log(res);
     let markerOptions = {
       radius: 5,
       fillColor: "#3388ff",
@@ -306,7 +305,41 @@ task4.addEventListener('click', (e) => {
 })
 
 // TASK 5
+function clickLine(e) {
+  let point = mymap.mouseEventToLatLng(e);
+  console.log(point);
+  let lat = point.lat;
+  let lng = point.lng;
+  let newP = {
+    lng: lat,
+    lat: lng
+  }
+  let url = 'http://localhost:3000';
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      "task": "task5",
+      point: newP
+    }),
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }).then(res => res.json())
+  .catch(error => console.error('Error: ', error))
+  .then((res) => {
+    if(res.hasOwnProperty('message')) {
+      console.log(res.message);
+    }
+    else {
+      console.log(res);
+      L.geoJSON(res).addTo(mymap);
+    }
+  })
+}
 let task5 = document.querySelector('[name=task-5]')
 task5.addEventListener('click', (e) => {
-  // getGermanyShape();
+  let linesGroup = document.querySelector('.leaflet-zoom-animated > g');
+  linesGroup.removeEventListener('click', clickLine);
+  linesGroup.addEventListener('click', clickLine);
+
 })

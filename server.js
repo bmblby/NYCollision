@@ -137,7 +137,7 @@ function pointsInGer() {
 
 app.post('/', (req, res) => {
   let d = req.body;
-  console.log(d);
+  // console.log(d);
 
   if(d.task === 'task1') {
     db.task(t => {
@@ -269,6 +269,86 @@ app.post('/', (req, res) => {
         let featCol = turf.featureCollection(features);
         console.log(featCol);
         res.json(featCol);
+    })
+    .catch((error) => {
+      console.log('ERROR: ', error);
+    });
+  }
+  else if(d.task === 'task5') {
+    let point = turf.point([d.point.lat, d.point.lng]);
+    point.geometry.crs = {
+      type: "name",
+      properties: {
+        name: "EPSG:4326"
+      }
+    };
+    console.log('Point: ', point.geometry);
+    db.task(t => {
+      // query get line from clicked position
+      let query = "SELECT st_asewkt(l.geom) \
+                  FROM lines as l \
+                  WHERE st_intersects(\
+                    l.geom::geography, st_buffer(ST_GeomFromGeoJSON(${point})::geography,\
+                    5000.0))";
+
+      // query get points to draw line to nearest point
+      let query2 = "WITH index_query_lines AS (\
+        SELECT\
+          st_asgeojson(\
+            st_closestpoint(\
+              ${line}::geometry,\
+              p.geom\
+            )\
+          ) as ptOnLine,\
+          p.id,\
+          st_asgeojson(p.geom) as nearestN\
+        FROM points p, lines l\
+        ORDER BY p.geom <#> ${line}::geometry\
+        )\
+        SELECT *\
+        FROM index_query_lines\
+        ORDER BY ptOnLine limit 1;";
+
+      return t.oneOrNone(query, {
+        point: point.geometry
+      })
+        .then(line => {
+          console.log('Result line: ',line);
+          if(line != null) {
+            return t.one(query2, {
+              line: line.st_asewkt
+            })
+              .then(points => {
+                console.log('as EWKT: ', points);
+                return {
+                  ptOnLine: JSON.parse(points.ptonline),
+                  nearestN: JSON.parse(points.nearestn)
+                };
+              });
+          }
+          else {
+            return {
+              ptOnLine: undefined
+            }
+          }
+        })
+        .catch(error => {
+          console.log("ERROR: ", error);
+        })
+    }).then((d) => {
+        if(d.ptOnLine != undefined ) {
+          console.log('\n\nresults from database: \n', d);
+          let pt1 = turf.getCoord(d.ptOnLine);
+          let pt2 = turf.getCoord(d.nearestN);
+          let line = turf.lineString([pt1, pt2]);
+          console.log(line);
+          res.json(line);
+        }
+        else {
+          res.json({
+            message: "did not get line"
+          });
+        }
     })
     .catch((error) => {
       console.log('ERROR: ', error);
