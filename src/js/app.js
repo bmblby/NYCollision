@@ -263,8 +263,9 @@ task2.addEventListener('click', (e) => {
       fillOpacity: 0.8
     };
     L.geoJSON(res, {
-      pointToLayer: (feature, latLng) => {
-        if(feature.geometry.type === 'Point') {
+      pointToLayer: (feat, latLng) => {
+        if(feat.geometry.type === 'Point') {
+          markerOptions.fillColor = feat.properties.color;
           return L.circleMarker(latLng, markerOptions);
         }
       }

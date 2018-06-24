@@ -189,7 +189,10 @@ app.post('/', (req, res) => {
       // query points on polygon border
       let query2 = "SELECT st_asgeojson(points.geom) \
         FROM points INNER JOIN polygons\
-        ON st_dwithin(st_exteriorring(polygons.geom),points.geom,0.001)"
+        ON st_dwithin(\
+          st_exteriorring(polygons.geom)::geography,\
+          st_buffer(points.geom::geography, 100.0),\
+          0.001)"
 
       return t.any(query)
         .then(ptsInside => {
@@ -209,12 +212,12 @@ app.post('/', (req, res) => {
           d[prop].forEach(f => {
             if(prop === "inside" && d[prop].length != 0) {
               let feat = turf.feature(f);
-              feat.properties.color = '#ff0000';
+              feat.properties.color = '#a4f521';
               features.push(feat);
             }
             else if(prop === 'border' && d[prop].length != 0) {
               let feat = turf.feature(f);
-              feat.properties.color = '#ff8200';
+              feat.properties.color = '#ff3d00';
               features.push(feat);
             }
           });
@@ -303,11 +306,11 @@ app.post('/', (req, res) => {
           p.id,\
           st_asgeojson(p.geom) as nearestN\
         FROM points p, lines l\
-        ORDER BY p.geom <#> ${line}::geometry\
+        ORDER BY p.geom <#> ${line}::geometry limit 1\
         )\
         SELECT *\
         FROM index_query_lines\
-        ORDER BY ptOnLine limit 1;";
+        ORDER BY ptOnLine;";
 
       return t.oneOrNone(query, {
         point: point.geometry
