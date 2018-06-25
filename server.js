@@ -277,6 +277,39 @@ app.post('/', (req, res) => {
       console.log('ERROR: ', error);
     });
   }
+  else if(d.task === 'task3') {
+    console.log('\n\nPolys: ', d);
+    db.task(t => {
+      // query get line from clicked position
+      let query = "SELECT st_relate(\
+        ST_GeomFromGeoJSON(${poly1}),\
+        ST_GeomFromGeoJSON(${poly2}));";
+
+      return t.one(query, {
+        poly1: d.polys[0].geometry,
+        poly2: d.polys[1].geometry
+      })
+        .then(states => {
+          console.log('Result line: ',states);
+          return states;
+        })
+        .catch(error => {
+          console.log("ERROR: ", error);
+        })
+    }).then((d) => {
+      if(d.hasOwnProperty('st_relate')) {
+        res.json(d.st_relate);
+      }
+      else {
+        res.json({
+          message: "did not get line"
+        });
+      }
+    })
+    .catch((error) => {
+      console.log('ERROR: ', error);
+    });
+  }
   else if(d.task === 'task5') {
     d.point.geometry.crs = {
       type: "name",

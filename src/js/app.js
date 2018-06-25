@@ -19,11 +19,12 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 
 // draw points, lines and Polygons
 
+var geoJSONLayer = {};
 window.onload = function() {
   drawFromDatabase();
 }
 
-function drawFromDatabase() {
+function drawFromDatabase(click) {
   let url = 'http://localhost:3000';
   return fetch(url, {
     method: 'POST',
@@ -44,13 +45,30 @@ function drawFromDatabase() {
       opacity: 1,
       fillOpacity: 0.8
     };
-    L.geoJSON(res, {
-      pointToLayer: (feature, latLng) => {
-        if(feature.geometry.type === 'Point') {
-          return L.circleMarker(latLng, markerOptions);
+    if (click === 1) {
+      geoJSONLayer = L.geoJSON(res, {
+        pointToLayer: (feature, latLng) => {
+          if(feature.geometry.type === 'Point') {
+            return L.circleMarker(latLng, markerOptions);
+          }
+        },
+        onEachFeature: (f, layer) => {
+          layer.on({
+            click: whenClicked
+          });
         }
-      }
-    }).addTo(mymap);
+      }).addTo(mymap);
+    }
+    else {
+      geoJSONLayer = L.geoJSON(res, {
+        pointToLayer: (feature, latLng) => {
+          if(feature.geometry.type === 'Point') {
+            return L.circleMarker(latLng, markerOptions);
+          }
+        }
+      }).addTo(mymap);
+
+    }
   })
 }
 
@@ -59,6 +77,7 @@ let points = [];
 let lines = [];
 let paths = [];
 let polygons = [];
+let polys = [];
 
 let polyline = [];
 let polygon = [];
@@ -96,7 +115,7 @@ radioBtn.addEventListener("click", (e) => {
       line.push(e.latlng);
       if (line.length == 2) {
         let lineGeo = L.polyline(line, {color: '#3388ff'}).toGeoJSON();
-        L.geoJSON(lineGeo).addTo(mymap);
+        geoJSONLayer.addData(lineGeo);
         globalID += 1;
         lineGeo.properties.id = globalID;
         lines.push(lineGeo)
@@ -130,6 +149,7 @@ finishBtn.addEventListener('click', (e) => {
     globalID += 1;
     let polylineGeo = L.polyline(polyline, {color: 'red'})
       .toGeoJSON();
+    geoJSONLayer.addData(polylineGeo);
 
     polylineGeo.properties.id = globalID;
     paths.push(polylineGeo);
@@ -142,7 +162,8 @@ finishBtn.addEventListener('click', (e) => {
 
     globalID += 1;
     polygonGeo.properties.id = globalID;
-    L.geoJSON(polygonGeo).addTo(mymap);
+    geoJSONLayer.addData(polygonGeo);
+    // L.geoJSON(polygonGeo).addTo(mymap);
     polygons.push(polygonGeo);
     polygon = [];
     console.log('polygons: ', polygons);
@@ -152,6 +173,7 @@ finishBtn.addEventListener('click', (e) => {
 
 let saveBtn = document.querySelector('[name=save-db]');
 saveBtn.addEventListener('click', (e) => {
+  mymap.removeEventListener();
   let geometries = {
     points: points,
     lines: lines,
@@ -277,9 +299,44 @@ task2.addEventListener('click', (e) => {
 })
 
 // TASK 3
+function whenClicked(e) {
+  if(e.sourceTarget.feature.geometry.type === 'Polygon') {
+    let poly = e.sourceTarget.feature;
+    console.log(poly);
+    polys.push(poly);
+    if(polys.length === 2) {
+      console.log(polys);
+      let url = 'http://localhost:3000';
+      return fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({
+          "task": "task3",
+          polys: polys
+        }),
+        headers: new Headers({
+          'Content-Type': 'application/json'
+        })
+      }).then(res => res.json())
+      .catch(error => console.error('Error: ', error))
+      .then(res => {
+        if(res.hasOwnProperty('message')) {
+          console.log(res.message);
+        }
+        else {
+          polys = [];
+          console.log(res);
+        }
+      })
+    }
+  } else {
+    console.log('Not a polygon!');
+  }
+}
+
 let task3 = document.querySelector('[name=task-3]')
 task3.addEventListener('click', (e) => {
-  // getGermanyShape();
+  drawFromDatabase(1);
+  console.log('sad print');
 })
 
 // TASK 4
@@ -307,16 +364,15 @@ task4.addEventListener('click', (e) => {
 
 // TASK 5
 function clickLine(e) {
-  let point = mymap.mouseEventToLatLng(e);
+  let pos = mymap.mouseEventToLatLng(e);
+  let point = turf.point([pos.lng, pos.lat]);
   console.log(point);
-  let newP = turf.point([point.lng, point.lat]);
-  console.log(newP);
   let url = 'http://localhost:3000';
   return fetch(url, {
     method: 'POST',
     body: JSON.stringify({
       "task": "task5",
-      point: newP
+      point: point
     }),
     headers: new Headers({
       'Content-Type': 'application/json'
@@ -338,5 +394,4 @@ task5.addEventListener('click', (e) => {
   let linesGroup = document.querySelector('.leaflet-zoom-animated > g');
   linesGroup.removeEventListener('click', clickLine);
   linesGroup.addEventListener('click', clickLine);
-
 })
