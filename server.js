@@ -73,33 +73,35 @@ function insertTable(data, table) {
   });
 }
 
-function createGermanyBorder() {
-  fs.readFile('./data/germany.json',
+function createBorder(pathToJSON, table) {
+  fs.readFile(pathToJSON,
     {encoding: 'UTF-8'},
     (err, data) => {
 
-    let gerGeoJSON = JSON.parse(data);
-    gerGeoJSON.geometry.crs = {
-      type: 'name',
-      properties: {
-        name: 'EPSG:4326'
+    let geoJSON = JSON.parse(data);
+    geoJSON.features.forEach(f => {
+      f.geometry.crs = {
+        type: 'name',
+        properties: {
+          name: 'EPSG:4326'
+        }
       }
-    }
-    db.none('INSERT INTO germanyjson(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
-      id: 1,
-      geoJSON: gerGeoJSON.geometry
-    })
-    .then(() => {
-      // console.log("DATA: ", data);
-      console.log('success insert: ' + gerGeoJSON.geometry.type
-                  + ' id: 1');
-    })
-    .catch(error => {
-      console.log("ERROR: ", error);
-    })
-  })
+      db.none('INSERT INTO nyc_borders(geom)\
+        VALUES (ST_GeomFromGeoJSON(${geoJSON}))', {
+        // table: table,
+        geoJSON: f.geometry
+      })
+      .then((d) => {
+        console.log(f.geometry);
+        console.log('success insert: ');
+      })
+      .catch(error => {
+        console.log("ERROR: ", error);
+      })
+    });
+  });
 }
-// createGermanyBorder();
+// createBorder('./data/community_districts.geojson');
 
 function pointsInGer() {
   db.one('SELECT st_asgeojson(geom, 10, 1) FROM germanyjson')
