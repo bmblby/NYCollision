@@ -7,8 +7,7 @@ import "../css/style.css";
 import L from "leaflet";
 import * as turf from '@turf/turf';
 
-let mymap = L.map('mapid').setView([50.85, 9.88], 5.5);
-console.log("ready to go on in the tutorial!");
+let mymap = L.map('mapid').setView([40.689038, -73.984000], 10.5);
 
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -394,4 +393,30 @@ task5.addEventListener('click', (e) => {
   let linesGroup = document.querySelector('.leaflet-zoom-animated > g');
   linesGroup.removeEventListener('click', clickLine);
   linesGroup.addEventListener('click', clickLine);
+})
+
+// TASk 6
+let task6 = document.querySelector('[name=task-6]');
+task6.addEventListener('click', (e) => {
+  let url = 'http://localhost:3000';
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      "task": "task6"
+    }),
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }).then(res => res.json())
+  .catch(error => console.error('Error: ', error))
+  .then((res) => {
+    // console.log(res);
+    // res.forEach(poly => {
+    //   console.log(poly.coordinates.length);
+    // })
+    res.forEach(poly => {
+      L.geoJSON(poly).addTo(mymap);
+    })
+  })
+
 })

@@ -381,6 +381,19 @@ app.post('/', (req, res) => {
       console.log('ERROR: ', error);
     });
   }
+  else if(d.task === 'task6') {
+    let query = 'SELECT st_asgeojson(geom) FROM nyc_borders';
+    db.manyOrNone(query)
+      .then(d => {
+        let borderPoly = d.map(geom => {
+          return JSON.parse(geom.st_asgeojson);
+        })
+        res.json(borderPoly);
+      })
+      .catch((error) => {
+        console.log('ERROR: ', error);
+      });
+  }
   else if (d.task === "clear") {
     db.none('DELETE FROM points *');
     db.none('DELETE FROM lines *');
