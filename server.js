@@ -12,7 +12,7 @@ const pgp = require('pg-promise')({
 });
 
 // pgp code
-const cn = "postgres://giuli:test123@localhost:5432/hard_task";
+const cn = "postgres://giuli@localhost:5432/hard_task";
 const db = pgp(cn);
 module.export = db;
 
@@ -21,11 +21,6 @@ var DIST_DIR = path.join(__dirname, "dist"),
     PORT = 3000,
     app = express();
 
-// //Send index.html when the user access the web
-// app.get("/", function (req, res) {
-//   res.sendFile(path.join(DIST_DIR, "index.html"));
-// });
-//
 //Serving the files on the dist folder
 app.use(express.static(DIST_DIR));
 app.use(bodyParser.json());
@@ -86,7 +81,7 @@ function createBorder(pathToJSON, table) {
           name: 'EPSG:4326'
         }
       }
-      db.none('INSERT INTO nyc_borders(geom)\
+      db.none('INSERT INTO germany_border(geom)\
         VALUES (ST_GeomFromGeoJSON(${geoJSON}))', {
         // table: table,
         geoJSON: f.geometry
@@ -102,9 +97,10 @@ function createBorder(pathToJSON, table) {
   });
 }
 // createBorder('./data/community_districts.geojson');
+// createBorder('./data/germany/germany.json', 'germany_border');
 
 function pointsInGer() {
-  db.one('SELECT st_asgeojson(geom, 10, 1) FROM germanyjson')
+  db.one('SELECT st_asgeojson(geom, 10, 1) FROM germany_border')
     .then((data) => {
       let globalID = 0;
       let gerGeoJSON = JSON.parse(data.st_asgeojson);
@@ -120,7 +116,7 @@ function pointsInGer() {
           }
         }
 
-        db.none('INSERT INTO pointst1(geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
+        db.none('INSERT INTO germany(geom) VALUES (ST_GeomFromGeoJSON(${geoJSON}))', {
             geoJSON: feat.geometry
           })
           .then()
@@ -149,16 +145,16 @@ app.post('/', (req, res) => {
           ST_Distance(geography(p1.geom), geography(points.geom)) as distance\
         from\
           (select distinct on(p2.geom)*\
-          from pointst1 p2\
+          from germany p2\
           where p2.id is not null) as points\
         cross join lateral\
           (select  id, geom\
-          from pointst1\
+          from germany\
           order  by points.geom <-> geom\
                    limit 2) as p1\
         order by distance desc limit 10000')
       .then((data) => {
-        return t.one("SELECT st_asgeojson(geom) FROM germanyjson")
+        return t.one("SELECT st_asgeojson(geom) FROM germany_border")
           .then(ger => {
             // console.log(data);
             let featCol = turf.featureCollection(data.map(f => {
@@ -380,19 +376,6 @@ app.post('/', (req, res) => {
     .catch((error) => {
       console.log('ERROR: ', error);
     });
-  }
-  else if(d.task === 'task6') {
-    let query = 'SELECT st_asgeojson(geom) FROM nyc_borders';
-    db.manyOrNone(query)
-      .then(d => {
-        let borderPoly = d.map(geom => {
-          return JSON.parse(geom.st_asgeojson);
-        })
-        res.json(borderPoly);
-      })
-      .catch((error) => {
-        console.log('ERROR: ', error);
-      });
   }
   else if (d.task === "clear") {
     db.none('DELETE FROM points *');

@@ -394,29 +394,3 @@ task5.addEventListener('click', (e) => {
   linesGroup.removeEventListener('click', clickLine);
   linesGroup.addEventListener('click', clickLine);
 })
-
-// TASk 6
-let task6 = document.querySelector('[name=task-6]');
-task6.addEventListener('click', (e) => {
-  let url = 'http://localhost:3000';
-  return fetch(url, {
-    method: 'POST',
-    body: JSON.stringify({
-      "task": "task6"
-    }),
-    headers: new Headers({
-      'Content-Type': 'application/json'
-    })
-  }).then(res => res.json())
-  .catch(error => console.error('Error: ', error))
-  .then((res) => {
-    // console.log(res);
-    // res.forEach(poly => {
-    //   console.log(poly.coordinates.length);
-    // })
-    res.forEach(poly => {
-      L.geoJSON(poly).addTo(mymap);
-    })
-  })
-
-})
