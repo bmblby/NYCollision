@@ -12,7 +12,7 @@ const pgp = require('pg-promise')({
 });
 
 // pgp code
-const cn = "postgres://giuli:test123@localhost:5432/hard_task";
+const cn = "postgres://giuli@localhost:5432/hard_task";
 const db = pgp(cn);
 module.export = db;
 
@@ -21,11 +21,6 @@ var DIST_DIR = path.join(__dirname, "dist"),
     PORT = 3000,
     app = express();
 
-// //Send index.html when the user access the web
-// app.get("/", function (req, res) {
-//   res.sendFile(path.join(DIST_DIR, "index.html"));
-// });
-//
 //Serving the files on the dist folder
 app.use(express.static(DIST_DIR));
 app.use(bodyParser.json());
@@ -73,36 +68,39 @@ function insertTable(data, table) {
   });
 }
 
-function createGermanyBorder() {
-  fs.readFile('./data/germany.json',
+function createBorder(pathToJSON, table) {
+  fs.readFile(pathToJSON,
     {encoding: 'UTF-8'},
     (err, data) => {
 
-    let gerGeoJSON = JSON.parse(data);
-    gerGeoJSON.geometry.crs = {
-      type: 'name',
-      properties: {
-        name: 'EPSG:4326'
+    let geoJSON = JSON.parse(data);
+    geoJSON.features.forEach(f => {
+      f.geometry.crs = {
+        type: 'name',
+        properties: {
+          name: 'EPSG:4326'
+        }
       }
-    }
-    db.none('INSERT INTO germanyjson(id, geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
-      id: 1,
-      geoJSON: gerGeoJSON.geometry
-    })
-    .then(() => {
-      // console.log("DATA: ", data);
-      console.log('success insert: ' + gerGeoJSON.geometry.type
-                  + ' id: 1');
-    })
-    .catch(error => {
-      console.log("ERROR: ", error);
-    })
-  })
+      db.none('INSERT INTO germany_border(geom)\
+        VALUES (ST_GeomFromGeoJSON(${geoJSON}))', {
+        // table: table,
+        geoJSON: f.geometry
+      })
+      .then((d) => {
+        console.log(f.geometry);
+        console.log('success insert: ');
+      })
+      .catch(error => {
+        console.log("ERROR: ", error);
+      })
+    });
+  });
 }
-// createGermanyBorder();
+// createBorder('./data/community_districts.geojson');
+// createBorder('./data/germany/germany.json', 'germany_border');
 
 function pointsInGer() {
-  db.one('SELECT st_asgeojson(geom, 10, 1) FROM germanyjson')
+  db.one('SELECT st_asgeojson(geom, 10, 1) FROM germany_border')
     .then((data) => {
       let globalID = 0;
       let gerGeoJSON = JSON.parse(data.st_asgeojson);
@@ -118,7 +116,7 @@ function pointsInGer() {
           }
         }
 
-        db.none('INSERT INTO pointst1(geom) VALUES (${id}, ST_GeomFromGeoJSON(${geoJSON}))', {
+        db.none('INSERT INTO germany(geom) VALUES (ST_GeomFromGeoJSON(${geoJSON}))', {
             geoJSON: feat.geometry
           })
           .then()
@@ -147,16 +145,16 @@ app.post('/', (req, res) => {
           ST_Distance(geography(p1.geom), geography(points.geom)) as distance\
         from\
           (select distinct on(p2.geom)*\
-          from pointst1 p2\
+          from germany p2\
           where p2.id is not null) as points\
         cross join lateral\
           (select  id, geom\
-          from pointst1\
+          from germany\
           order  by points.geom <-> geom\
                    limit 2) as p1\
         order by distance desc limit 10000')
       .then((data) => {
-        return t.one("SELECT st_asgeojson(geom) FROM germanyjson")
+        return t.one("SELECT st_asgeojson(geom) FROM germany_border")
           .then(ger => {
             // console.log(data);
             let featCol = turf.featureCollection(data.map(f => {
