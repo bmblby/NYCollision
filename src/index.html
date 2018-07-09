@@ -2,39 +2,62 @@
 <html lang="" dir="ltr">
   <head>
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>NYC Vehicle Collision</title>
   </head>
   <body>
-    <div id="mapid"></div>
-    <div class="radio-btn">
-      <p>
-        <input type="radio" id="point-btn" name="geom-mode" value="point" checked>
-        <label for="point-btn">Points</label>
-        <input type="radio" id="line-btn" name="geom-mode" value="line">
-        <label for="line-btn">Lines</label>
-      </p>
-      <p>
-        <input type="radio" id="polyline-btn" name="geom-mode" value="polyline">
-        <label for="polyline-btn">Polylines</label>
-        <input type="radio" id="polygon-btn" name="geom-mode" value="polygon">
-        <label for="polygon-btn">Polygons</label>
-        <button type="button" name="finish">Finish!</button>
-      </p>
-    </div>
+    <!-- bootstrap template  -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#">NYCollision</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <div class="database-btn">
-      <button type="button" name="save-db">Save to Database</button>
-      <button type="button" name="clear-db">Clear Database</button>
-    </div>
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Routing <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Statistics</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="https://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Filter by vehicle type</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">Passenger vehicle</a>
+              <a class="dropdown-item" href="#">Taxi</a>
+              <a class="dropdown-item" href="#">Van</a>
+              <a class="dropdown-item" href="#">Small commercial vehicle (4 tires)</a>
+              <a class="dropdown-item" href="#">Large commercial vehicle (6 or more tires)</a>
+              <a class="dropdown-item" href="#">Pick-Up truck</a>
+              <a class="dropdown-item" href="#">Sport utility / station wagon</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="https://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Filter by injury</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">Persons injured</a>
+              <a class="dropdown-item" href="#">Persons killed</a>
+            </div>
+          </li>
+          <button id="routeMe" class="btn btn-outline-success btn-sm my-2 my-sm-0" type="submit">Get me there save!</button>
+        </ul>
+        <!-- <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form> -->
+      </div>
+    </nav>
 
-    <div class="task">
-      <button type="button" name="task-1">Task One</button>
-      <button type="button" name="task-2">Task Two</button>
-      <button type="button" name="task-3">Task Three</button>
-      <button type="button" name="task-4">Task Four</button>
-      <button type="button" name="task-5">Task Five</button>
-    </div>
+    <main role="main" class="container">
 
+      <div class="starter-template">
+        <div id="mapid"></div>
+      </div>
+
+    </main><!-- /.container -->
 
     <script src="bundle.js"></script>
   </body>
