@@ -34,6 +34,10 @@ module.exports = [{
     },
     plugins: [
       // new CleanWebpackPlugin(['dist']),
+      // new webpack.ProvidePlugin({
+      //   $: "jquery",
+      //   jQuery: "jquery"
+      // }),
       new WriteFilePlugin(),
       new CopyWebpackPlugin([
         {

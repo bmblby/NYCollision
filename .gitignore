@@ -1,6 +1,7 @@
 
 .atom-live-server.json
 data/
+dist/
 
 # macos system files
 .DS_Store
@@ -63,4 +64,3 @@ typings/
 
 # dotenv environment variables file
 .env
-
