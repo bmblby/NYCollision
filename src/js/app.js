@@ -96,15 +96,26 @@ mymap.addEventListener('click', (e) => {
       return L.circleMarker(latLng, markerOptions);
     }
   }).addTo(mymap);
-  points.push(point)
-  console.log(point);
+
+  if (points.length  < 2) {
+    points.push(point);
+  }
+  console.log(points);
 })
 
 let routeMeBtn = document.querySelector('#routeMe');
 routeMeBtn.addEventListener('click', function (e) {
-  let featCol = turf.featureCollection(points);
-  console.log(featCol);
-  send(featCol, 'getRoute')
+  if(points.length == 2) {
+    send({
+      source: points[0],
+      target: points[1]
+    }, 'getRoute')
+  }
+  else {
+    console.log('not enough points set in the application.');
+  }
+  // let featCol = turf.featureCollection(points);
+  // console.log(featCol);
 });
 
 
