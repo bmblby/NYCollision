@@ -26,7 +26,7 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 
 var geoJSONLayer = {};
 window.onload = function() {
-  drawFromDatabase();
+  // drawFromDatabase();
 }
 
 function drawFromDatabase(click) {
@@ -124,7 +124,9 @@ function send(data, task) {
   }).then(res => res.json())
   .catch(error => console.error('Error: ', error))
   .then((data) => {
-    console.log(data.test);
+    // get featCol with geoJSON path
+    console.log(data);
+    L.geoJSON(data).addTo(mymap);
   })
 
 }

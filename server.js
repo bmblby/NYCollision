@@ -109,15 +109,12 @@ function addSRID(feature) {
   return feature;
 }
 
-
 app.post('/getRoute', (req, res) => {
   let d = req.body;
   let featCol = turf.featureCollection(d.data.features.map(d => addSRID(d)));
   featCol.features.forEach(f => console.log(f.geometry));
 
 
-  // NOTE: get ways id from two points back
-  // NOTE: req route path with two ids
   // get route back from db and send featCol of routing path
   let sourceQuery = "SELECT gid, source, st_asgeojson(the_geom)\
                             FROM ways\
@@ -126,15 +123,42 @@ app.post('/getRoute', (req, res) => {
 
   let targetQuery = "SELECT gid, target, st_asgeojson(the_geom)\
                             FROM ways\
-                            ORDER BY the_geom <-> ST_GeomFromGeoJSON(${target});"
+                            ORDER BY the_geom <-> ST_GeomFromGeoJSON(${target})\
+                            LIMIT 1;"
+
+  // TODO: req route path with two ids
+  // let routeQuery = "SELECT st_asgeojson(the_geom)"
+
+
   db.task(t => {
     return t.one(sourceQuery, {
       source: featCol.features[0].geometry
-    }).then(result => {
-      console.log(result);
+    }).then(source => {
+      return t.one(targetQuery, {
+        target: featCol.features[1].geometry
+      }).then(target => {
+        console.log(source.source, target.target);
+        let routeQuery = 'SELECT\
+                    st_asgeojson(ways.the_geom)\
+                    FROM (SELECT * FROM pgr_dijkstra(\
+                      \'SELECT gid as id, source, target, length_m as cost FROM ways\', '+
+                      target.target.toString() + ', ' +
+                      source.source.toString()
+                      +')) as route\
+                      LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
+        return t.any(routeQuery).then(result => {
+          return result.filter(d => d.st_asgeojson != null);
+        })
+      })
     });
+  }).then(data => {
+    let segments = data.map(f => turf.feature(JSON.parse(f.st_asgeojson)))
+    let featCol = turf.featureCollection(segments);
+    // console.log(featCol);
+    res.json(featCol);
+
+  }).catch(error => {
+    console.error(error);
   })
-
-
 
 });
