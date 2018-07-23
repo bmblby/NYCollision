@@ -110,8 +110,10 @@ function addSRID(feature) {
 }
 
 app.post('/getRoute', (req, res) => {
-  let d = req.body;
-  let featCol = turf.featureCollection(d.data.features.map(d => addSRID(d)));
+  let d = req.body.data;
+  let source = addSRID(d.source);
+  let target = addSRID(d.target);
+  let featCol = turf.featureCollection([source, target]);
   featCol.features.forEach(f => console.log(f.geometry));
 
 

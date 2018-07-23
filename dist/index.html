@@ -17,30 +17,29 @@
 
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Routing <span class="sr-only">(current)</span></a>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="https://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">How are you commuting ?</a>
+            <div class="dropdown-menu vehicle-type" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">Pedestrian</a>
+              <a class="dropdown-item" href="#">Cyclist</a>
+              <a class="dropdown-item" href="#">Motorcycle</a>
+              <a class="dropdown-item" href="#">Car</a>
+            </div>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Statistics</a>
+            <a class="nav-link" href="#">Routing <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="https://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Filter by vehicle type</a>
-            <div class="dropdown-menu" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="#">Passenger vehicle</a>
-              <a class="dropdown-item" href="#">Taxi</a>
-              <a class="dropdown-item" href="#">Van</a>
-              <a class="dropdown-item" href="#">Small commercial vehicle (4 tires)</a>
-              <a class="dropdown-item" href="#">Large commercial vehicle (6 or more tires)</a>
-              <a class="dropdown-item" href="#">Pick-Up truck</a>
-              <a class="dropdown-item" href="#">Sport utility / station wagon</a>
+            <a class="nav-link dropdown-toggle" href="https://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choose you level of security</a>
+            <div class="dropdown-menu sec-lvl" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">Lvl 0: Take me there as fast as possible</a>
+              <a class="dropdown-item" href="#">Lvl 1: avoid only streets with </a>
+              <a class="dropdown-item" href="#">Lvl 2: Take me there as fast as possible</a>
+              <a class="dropdown-item" href="#">Lvl 3: try avoiding as many dangerous streets as possible</a>
             </div>
           </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="https://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Filter by injury</a>
-            <div class="dropdown-menu" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="#">Persons injured</a>
-              <a class="dropdown-item" href="#">Persons killed</a>
-            </div>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Security: - <span class="sr-only">(current)</span></a>
           </li>
           <button id="routeMe" class="btn btn-outline-success btn-sm my-2 my-sm-0" type="submit">Get me there save!</button>
         </ul>
@@ -57,7 +56,7 @@
         <div id="mapid"></div>
       </div>
 
-    </main><!-- /.container -->
+    </main>
 
     <script src="bundle.js"></script>
   </body>
