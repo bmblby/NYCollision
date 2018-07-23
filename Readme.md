@@ -21,3 +21,23 @@ start local server on ./dist directory for example with node to launch the appli
 
     npm install -g http-server
     http-server -p 8000
+    npm run server
+
+
+
+# Database setup
+
+brew install postgres 
+
+brew install postgis
+
+create extension "CREATE EXTENSION postgis" in postgres
+
+brew install osm2pgrouting
+
+osm2pgrouting -f nyc_only.osm -c mapconfig.xml -d postgres -U gentymeri
+
+run script 'hard_task_public_nyc.sql' inside Datagrip
+
+run queries in postgres to create the other tables ("sqlqueriesfortables.sql")
+

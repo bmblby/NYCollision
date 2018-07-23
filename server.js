@@ -12,7 +12,7 @@ const pgp = require('pg-promise')({
 });
 
 // pgp code
-const cn = "postgres://giuli@localhost:5432/postgres";
+const cn = "postgres://gentymeri@localhost:5432/postgres";
 const db = pgp(cn);
 module.export = db;
 
@@ -143,7 +143,7 @@ app.post('/getRoute', (req, res) => {
         let routeQuery = 'SELECT\
                     st_asgeojson(ways.the_geom)\
                     FROM (SELECT * FROM pgr_dijkstra(\
-                      \'SELECT gid as id, source, target, length_m as cost FROM ways\', '+
+                      \'SELECT gid as id, source, target, number_of_accidents as cost FROM ways\', '+
                       target.target.toString() + ', ' +
                       source.source.toString()
                       +')) as route\
