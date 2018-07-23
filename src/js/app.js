@@ -88,7 +88,7 @@ let markerOptions = {
   opacity: 1,
   fillOpacity: 0.8
 }
-mymap.removeEventListener();
+
 mymap.addEventListener('click', (e) => {
   let point = L.circleMarker(e.latlng).toGeoJSON();
   L.geoJSON(point, {
