@@ -118,7 +118,20 @@ function send(data, task) {
   .then((data) => {
     // get featCol with geoJSON path
     console.log(data);
-    L.geoJSON(data).addTo(mymap);
+    colorPath(data, 'lawngreen', 'orangered');
   })
+}
 
+function colorPath(data, minColor, maxColor) {
+  let min = _.minBy(data.features, 'properties.cost');
+  let max = _.maxBy(data.features, 'properties.cost');
+  console.log(min.properties.cost, max.properties.cost);
+  let color = d3.scaleLinear()
+    .domain([min.properties.cost, max.properties.cost])
+    .range([minColor, maxColor])
+  L.geoJSON(data, {
+    style: function (feat) {
+      return {color: color(feat.properties.cost).toString()};
+    }
+  }).addTo(mymap);
 }
