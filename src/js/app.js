@@ -23,8 +23,7 @@ vehType.addEventListener('click', function (e) {
 
 let secLvl = document.querySelector('.sec-lvl');
 secLvl.addEventListener('click', function (e) {
-  console.log(e.target.text);
-  let text = e.target.text.slice(0, 5);
+  let text = e.target.text.slice(0, 6);
   let currentDisplay = document.querySelector('li.nav-item:nth-child(4) > a:nth-child(1)');
   currentDisplay.text = text;
 })
@@ -51,14 +50,12 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 }).addTo(mymap);
 
 // draw points, lines and Polygons
-
 var geoJSONLayer = {};
 window.onload = function() {
 }
 
-
 let points = [];
-
+let lastQuery = [];
 // set 2 points for start and end of route
 let markerOptions = {
   radius: 5,
@@ -83,13 +80,28 @@ mymap.addEventListener('click', (e) => {
   console.log(points);
 })
 
+let altPaths = document.querySelector('li.nav-item:nth-child(5) > a:nth-child(1)');
+altPaths.addEventListener('click', function (e) {
+  let user = document.querySelector('li.nav-item:nth-child(2) > a:nth-child(1)').text;
+  let lvl = document.querySelector('li.nav-item:nth-child(4) > a:nth-child(1)').text;
+  console.log(lastQuery);
+  send({
+    source: lastQuery[0],
+    target: lastQuery[1]
+  }, 'pgr_ksp', lvl, user);
+})
+
 let routeMeBtn = document.querySelector('#routeMe');
 routeMeBtn.addEventListener('click', function (e) {
+  let user = document.querySelector('li.nav-item:nth-child(2) > a:nth-child(1)').text;
+  let lvl = document.querySelector('li.nav-item:nth-child(4) > a:nth-child(1)').text;
+  console.log(user, lvl);
   if(points.length == 2) {
     send({
       source: points[0],
       target: points[1]
-    }, 'getRoute')
+    }, 'pgr_dijkstra', lvl, user);
+    lastQuery = points;
     points = [];
   }
   else {
@@ -100,11 +112,14 @@ routeMeBtn.addEventListener('click', function (e) {
 });
 
 
-function send(data, task) {
-  let url = 'http://localhost:3000/' + task.toString();
+function send(data, task, lvl, user) {
+  // TODO: check for set parameter bevor sending req to server
+  let url = 'http://localhost:3000/route';
 
   let packageData = {
-    task: task,
+    method: task,
+    secLvl: lvl,
+    user: user,
     data: data
   }
   return fetch(url, {
