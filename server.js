@@ -128,10 +128,6 @@ app.post('/getRoute', (req, res) => {
                             ORDER BY the_geom <-> ST_GeomFromGeoJSON(${target})\
                             LIMIT 1;"
 
-  // TODO: req route path with two ids
-  // let routeQuery = "SELECT st_asgeojson(the_geom)"
-
-
   db.task(t => {
     return t.one(sourceQuery, {
       source: featCol.features[0].geometry
@@ -141,7 +137,7 @@ app.post('/getRoute', (req, res) => {
       }).then(target => {
         console.log(source.source, target.target);
         let routeQuery = 'SELECT\
-                    st_asgeojson(ways.the_geom)\
+                    st_asgeojson(ways.the_geom) as geojson, ways.length_m as cost\
                     FROM (SELECT * FROM pgr_dijkstra(\
                       \'SELECT gid as id, source, target, number_of_accidents as cost FROM ways\', '+
                       target.target.toString() + ', ' +
@@ -149,14 +145,19 @@ app.post('/getRoute', (req, res) => {
                       +')) as route\
                       LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
         return t.any(routeQuery).then(result => {
-          return result.filter(d => d.st_asgeojson != null);
+          return result.filter(d => d.geojson != null);
         })
       })
     });
   }).then(data => {
-    let segments = data.map(f => turf.feature(JSON.parse(f.st_asgeojson)))
+    // console.log(data);
+    let segments = data.map(f => {
+      let feat = turf.feature(JSON.parse(f.geojson));
+      feat.properties.cost = f.cost;
+      return feat;
+    });
     let featCol = turf.featureCollection(segments);
-    // console.log(featCol);
+    console.log(featCol);
     res.json(featCol);
 
   }).catch(error => {
