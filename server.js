@@ -109,14 +109,7 @@ function addSRID(feature) {
   return feature;
 }
 
-app.post('/getRoute', (req, res) => {
-  let d = req.body.data;
-  let source = addSRID(d.source);
-  let target = addSRID(d.target);
-  let featCol = turf.featureCollection([source, target]);
-  featCol.features.forEach(f => console.log(f.geometry));
-
-
+function computePath(source, target, res, cost, method) {
   // get route back from db and send featCol of routing path
   let sourceQuery = "SELECT gid, source, st_asgeojson(the_geom)\
                             FROM ways\
@@ -128,23 +121,25 @@ app.post('/getRoute', (req, res) => {
                             ORDER BY the_geom <-> ST_GeomFromGeoJSON(${target})\
                             LIMIT 1;"
 
-  db.task(t => {
+  return db.task(t => {
     return t.one(sourceQuery, {
-      source: featCol.features[0].geometry
+      source: source
     }).then(source => {
       return t.one(targetQuery, {
-        target: featCol.features[1].geometry
+        target: target
       }).then(target => {
         console.log(source.source, target.target);
+        // TODO: add cost into inner query -> db update is needed for that
         let routeQuery = 'SELECT\
                     st_asgeojson(ways.the_geom) as geojson, ways.length_m as cost\
-                    FROM (SELECT * FROM pgr_dijkstra(\
-                      \'SELECT gid as id, source, target, number_of_accidents as cost FROM ways\', '+
+                    FROM (SELECT * FROM '+ method.toString() +'(\
+                      \'SELECT gid as id, source, target, length_m as cost FROM ways\', '+
                       target.target.toString() + ', ' +
                       source.source.toString()
                       +')) as route\
                       LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
         return t.any(routeQuery).then(result => {
+          // console.log(result);
           return result.filter(d => d.geojson != null);
         })
       })
@@ -159,9 +154,101 @@ app.post('/getRoute', (req, res) => {
     let featCol = turf.featureCollection(segments);
     console.log(featCol);
     res.json(featCol);
-
+    // return featCol;
   }).catch(error => {
     console.error(error);
   })
+}
+
+function kShortPath(source, target, res, cost, method, k = 2) {
+  // get route back from db and send featCol of routing path
+  let sourceQuery = "SELECT gid, source, st_asgeojson(the_geom)\
+                            FROM ways\
+                            ORDER BY the_geom <-> ST_GeomFromGeoJSON(${source})\
+                            LIMIT 1;"
+
+  let targetQuery = "SELECT gid, target, st_asgeojson(the_geom)\
+                            FROM ways\
+                            ORDER BY the_geom <-> ST_GeomFromGeoJSON(${target})\
+                            LIMIT 1;"
+
+  return db.task(t => {
+    return t.one(sourceQuery, {
+      source: source
+    }).then(source => {
+      return t.one(targetQuery, {
+        target: target
+      }).then(target => {
+        console.log(source.source, target.target);
+        // TODO: add cost into inner query -> db update is needed for that
+        let kspQuery = 'SELECT\
+                    st_asgeojson(ways.the_geom) as geojson, ways.length_m as cost\
+                    FROM (SELECT * FROM '+ method.toString() +'(\
+                      \'SELECT gid as id, source, target, length_m as cost,\
+                      x1, x2, y1, y2 FROM ways\', '+
+                      target.target.toString() + ', ' +
+                      source.source.toString()
+                      +', 4)) as route\
+                      LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
+        return t.any(kspQuery).then(result => {
+          // console.log(result);
+          return result.filter(d => d.geojson != null);
+        })
+      })
+    });
+  }).then(data => {
+    // console.log(data);
+    let segments = data.map(f => {
+      let feat = turf.feature(JSON.parse(f.geojson));
+      feat.properties.cost = f.cost;
+      return feat;
+    });
+    let featCol = turf.featureCollection(segments);
+    console.log(featCol);
+    res.json(featCol);
+    // return featCol;
+  }).catch(error => {
+    console.error(error);
+  })
+}
+
+app.post('/route', (req, res) => {
+  let d = req.body.data;
+  let method = req.body.method;
+  let secLvl = req.body.secLvl;
+  let user = req.body.user;
+  console.log(req.body);
+
+  let source = addSRID(d.source);
+  let target = addSRID(d.target);
+  let featCol = turf.featureCollection([source, target]);
+  // featCol.features.forEach(f => console.log(f.geometry));
+
+  //build string for column access
+  let cost = user.toString().toLowerCase() + '_' + secLvl.toString().toLowerCase();
+  console.log(cost);
+  // computePath(source.geometry, target.geometry, res, 'length_m', 'pgr_dijkstra');
+
+  if(method === 'pgr_ksp') {
+    let k = 3;
+    kShortPath(source.geometry, target.geometry, res, cost, method, k);
+  }
+  else if (method === 'pgr_dijkstra') {
+    computePath(source.geometry, target.geometry, res, cost, method);
+  }
+
+  if(user === 'Pedestrian') {
+    console.log('get pedestrian route');
+  }
+  else if (user === 'Cyclist') {
+
+  }
+  else if (user === 'Motorist') {
+
+  }
+  else if (user === 'Car') {
+
+  }
+  // res.json();
 
 });
