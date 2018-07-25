@@ -25,6 +25,9 @@ var secLvl = 'Level0';
 let secList = document.querySelector('.sec-lvl')
 secList.addEventListener('click', function (e) {
   secLvl = e.target.attributes.value.value;
+  if (reqData.length != 0) {
+    highlightPath(secLvl, 'lawngreen', 'orangered');
+  }
 });
 
 let homeBtn = document.querySelector('.navbar-brand');
@@ -53,6 +56,8 @@ var geoJSONLayer = {};
 window.onload = function() {
 }
 
+let old_secLvl = secLvl;
+let reqData = [];
 let points = [];
 let lastQuery = [];
 // set 2 points for start and end of route
@@ -93,7 +98,18 @@ mymap.addEventListener('click', (e) => {
 let routeMeBtn = document.querySelector('#routeMe');
 routeMeBtn.addEventListener('click', function (e) {
   let user = document.querySelector('li.nav-item:nth-child(2) > a:nth-child(1)').text;
-  console.log(user, secLvl);
+  if (secLvl !== old_secLvl) {
+    // hide original path
+    console.log(reqData);
+    mymap.eachLayer(function (layer) {
+      if(layer.hasOwnProperty('feature')) {
+        if (layer.feature.properties.secLvl === old_secLvl) {
+          layer.setStyle({color: '#778899'});
+          console.log(layer.feature.properties.secLvl);
+        }
+      }
+    })
+  }
   if(points.length == 2) {
     let data = {
       source: points[0],
@@ -101,6 +117,7 @@ routeMeBtn.addEventListener('click', function (e) {
     };
     send(data, 'pgr_dijkstra', secLvl, user);
     lastQuery = points;
+    old_secLvl = secLvl;
     // points = [];
   }
   else {
@@ -129,23 +146,57 @@ function send(data, task, lvl, user) {
     })
   }).then(res => res.json())
   .catch(error => console.error('Error: ', error))
-  .then((data) => {
+  .then((res) => {
     // get featCol with geoJSON path
-    console.log(data);
-    colorPath(data, 'lawngreen', 'orangered');
+    console.log(res);
+    res.features.forEach(f => {
+      f.properties.secLvl = lvl;
+    })
+    let leaflet_id = colorPath(res, 'lawngreen', 'orangered');
+    reqData.push({
+      data: res,
+      secLvl: lvl,
+      source: data.source,
+      target: data.target,
+      leafletId: leaflet_id
+    });
+  })
+}
+
+function highlightPath(secLevel, minColor, maxColor) {
+  console.log(secLevel);
+  let d = reqData.find(d => d.secLvl === secLvl);
+  console.log(d);
+  let min = _.minBy(d.data.features, 'properties.cost');
+  let max = _.maxBy(d.data.features, 'properties.cost');
+  // console.log(min.properties.cost, max.properties.cost);
+  let color = d3.scaleLinear()
+    .domain([min.properties.cost, max.properties.cost])
+    .range([minColor, maxColor])
+  mymap.eachLayer(function (layer) {
+    if(layer.hasOwnProperty('feature')) {
+      if(layer.feature.properties.secLvl === secLvl) {
+        let cost = layer.feature.properties.cost;
+        layer.setStyle({color: color(cost)})
+      }
+      else {
+        layer.setStyle({color: '#778899'});
+      }
+    }
   })
 }
 
 function colorPath(data, minColor, maxColor) {
   let min = _.minBy(data.features, 'properties.cost');
   let max = _.maxBy(data.features, 'properties.cost');
-  console.log(min.properties.cost, max.properties.cost);
+  // console.log(min.properties.cost, max.properties.cost);
   let color = d3.scaleLinear()
     .domain([min.properties.cost, max.properties.cost])
     .range([minColor, maxColor])
-  L.geoJSON(data, {
+  let handle = L.geoJSON(data, {
     style: function (feat) {
       return {color: color(feat.properties.cost).toString()};
     }
   }).addTo(mymap);
+  return handle._leaflet_id;
 }

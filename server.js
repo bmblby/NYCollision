@@ -140,7 +140,7 @@ function computePath(source, target, res, cost, method) {
                       LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
         console.log('routeQuery: ', routeQuery);
         return t.any(routeQuery).then(result => {
-          // console.log(result);
+          console.log(result);
           return result.filter(d => d.geojson != null);
         })
       })
