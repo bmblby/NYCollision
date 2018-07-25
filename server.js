@@ -12,7 +12,7 @@ const pgp = require('pg-promise')({
 });
 
 // pgp code
-const cn = "postgres://gentymeri@localhost:5432/postgres";
+const cn = "postgres://giuli@localhost:5432/postgres";
 const db = pgp(cn);
 module.export = db;
 
@@ -133,11 +133,12 @@ function computePath(source, target, res, cost, method) {
         let routeQuery = 'SELECT\
                     st_asgeojson(ways.the_geom) as geojson, ways.length_m as cost\
                     FROM (SELECT * FROM '+ method.toString() +'(\
-                      \'SELECT gid as id, source, target, length_m as cost FROM ways\', '+
+                      \'SELECT gid as id, source, target, '+ cost.toString() +' as cost FROM ways\', '+
                       target.target.toString() + ', ' +
                       source.source.toString()
                       +')) as route\
                       LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
+        console.log('routeQuery: ', routeQuery);
         return t.any(routeQuery).then(result => {
           // console.log(result);
           return result.filter(d => d.geojson != null);
@@ -225,30 +226,19 @@ app.post('/route', (req, res) => {
   // featCol.features.forEach(f => console.log(f.geometry));
 
   //build string for column access
-  let cost = user.toString().toLowerCase() + '_' + secLvl.toString().toLowerCase();
+  let cost = user.toString().toLowerCase() + 's_' + secLvl.toString().toLowerCase();
+  if(secLvl === 'Level0') {
+    cost = 'length_m'
+  }
   console.log(cost);
   // computePath(source.geometry, target.geometry, res, 'length_m', 'pgr_dijkstra');
 
-  if(method === 'pgr_ksp') {
+  if (method === 'pgr_dijkstra') {
+    computePath(source.geometry, target.geometry, res, cost, method);
+  }
+  else if(method === 'pgr_ksp') {
     let k = 3;
     kShortPath(source.geometry, target.geometry, res, cost, method, k);
   }
-  else if (method === 'pgr_dijkstra') {
-    computePath(source.geometry, target.geometry, res, cost, method);
-  }
-
-  if(user === 'Pedestrian') {
-    console.log('get pedestrian route');
-  }
-  else if (user === 'Cyclist') {
-
-  }
-  else if (user === 'Motorist') {
-
-  }
-  else if (user === 'Car') {
-
-  }
-  // res.json();
 
 });

@@ -97,10 +97,11 @@ routeMeBtn.addEventListener('click', function (e) {
   let lvl = document.querySelector('li.nav-item:nth-child(4) > a:nth-child(1)').text;
   console.log(user, lvl);
   if(points.length == 2) {
-    send({
+    let data = {
       source: points[0],
       target: points[1]
-    }, 'pgr_dijkstra', lvl, user);
+    };
+    send(data, 'pgr_dijkstra', lvl, user);
     lastQuery = points;
     points = [];
   }
