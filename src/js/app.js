@@ -21,12 +21,11 @@ vehType.addEventListener('click', function (e) {
   currentDisplay.text = e.target.text;
 })
 
-let secLvl = document.querySelector('.sec-lvl');
-secLvl.addEventListener('click', function (e) {
-  let text = e.target.text.slice(0, 6);
-  let currentDisplay = document.querySelector('li.nav-item:nth-child(4) > a:nth-child(1)');
-  currentDisplay.text = text;
-})
+var secLvl = 'Level0';
+let secList = document.querySelector('.sec-lvl')
+secList.addEventListener('click', function (e) {
+  secLvl = e.target.attributes.value.value;
+});
 
 let homeBtn = document.querySelector('.navbar-brand');
 homeBtn.addEventListener('click', function (e) {
@@ -80,30 +79,29 @@ mymap.addEventListener('click', (e) => {
   console.log(points);
 })
 
-let altPaths = document.querySelector('li.nav-item:nth-child(5) > a:nth-child(1)');
-altPaths.addEventListener('click', function (e) {
-  let user = document.querySelector('li.nav-item:nth-child(2) > a:nth-child(1)').text;
-  let lvl = document.querySelector('li.nav-item:nth-child(4) > a:nth-child(1)').text;
-  console.log(lastQuery);
-  send({
-    source: lastQuery[0],
-    target: lastQuery[1]
-  }, 'pgr_ksp', lvl, user);
-})
+// TODO: cannot find css path
+// let altPaths = document.querySelector('li.nav-item:nth-child(5) > a:nth-child(1)');
+// altPaths.addEventListener('click', function (e) {
+//   let user = document.querySelector('li.nav-item:nth-child(3) > a:nth-child(1)').text;
+//   console.log(lastQuery);
+//   send({
+//     source: lastQuery[0],
+//     target: lastQuery[1]
+//   }, 'pgr_ksp', secLvl, user);
+// })
 
 let routeMeBtn = document.querySelector('#routeMe');
 routeMeBtn.addEventListener('click', function (e) {
   let user = document.querySelector('li.nav-item:nth-child(2) > a:nth-child(1)').text;
-  let lvl = document.querySelector('li.nav-item:nth-child(4) > a:nth-child(1)').text;
-  console.log(user, lvl);
+  console.log(user, secLvl);
   if(points.length == 2) {
     let data = {
       source: points[0],
       target: points[1]
     };
-    send(data, 'pgr_dijkstra', lvl, user);
+    send(data, 'pgr_dijkstra', secLvl, user);
     lastQuery = points;
-    points = [];
+    // points = [];
   }
   else {
     console.log('not enough points set in the application.');

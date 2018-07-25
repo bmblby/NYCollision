@@ -27,9 +27,9 @@
             </div>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">-<span class="sr-only"></span></a>
+            <a class="nav-link" href="#">Pedestrian<span class="sr-only"></span></a>
           </li>
-          <li class="nav-item dropdown">
+          <!-- <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="https://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choose you level of security</a>
             <div class="dropdown-menu sec-lvl" aria-labelledby="dropdown01">
               <a class="dropdown-item" href="#">Level0: Take me there as fast as possible</a>
@@ -40,7 +40,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">-<span class="sr-only"></span></a>
-          </li>
+          </li> -->
           <li class="nav-item">
             <a class="nav-link" href="#">show alternatives<span class="sr-only">(current)</span></a>
           </li>
@@ -50,10 +50,27 @@
     </nav>
 
     <main role="main" class="container">
-
-      <div class="starter-template">
-        <div id="mapid"></div>
+      <div class="row">
+        <div class="col-4">
+          <div class="list-group sec-lvl" id="list-tab" role="tablist">
+            <a class="list-group-item list-group-item-action active" id="list-home-list" data-toggle="list" href="#list-home" role="tab" aria-controls="home" value="Level0">Take me there as fast as possible</a>
+            <a class="list-group-item list-group-item-action" id="list-profile-list" data-toggle="list" href="#list-profile" role="tab" aria-controls="profile" value="Level1">Some security should be no harm right?</a>
+            <a class="list-group-item list-group-item-action" id="list-messages-list" data-toggle="list" href="#list-messages" role="tab" aria-controls="messages" value="Level2">I really do not want to get hurt!</a>
+            <a class="list-group-item list-group-item-action" id="list-settings-list" data-toggle="list" href="#list-settings" role="tab" aria-controls="settings" value="Level3">I am too scared to go outside!!</a>
+          </div>
+        </div>
+        <div class="col-8">
+          <div class="tab-content" id="nav-tabContent">
+            <div id="mapid"></div>
+            <!-- <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list">testing11</div>
+            <div class="tab-pane fade" id="list-profile" role="tabpanel" aria-labelledby="list-profile-list">testing21</div>
+            <div class="tab-pane fade" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">testing1212</div>
+            <div class="tab-pane fade" id="list-settings" role="tabpanel" aria-labelledby="list-settings-list">testing1312</div> -->
+          </div>
+        </div>
       </div>
+      <!-- <div class="starter-template">
+      </div> -->
 
     </main>
 
