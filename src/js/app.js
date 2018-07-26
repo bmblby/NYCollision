@@ -36,10 +36,13 @@ homeBtn.addEventListener('click', function (e) {
 });
 
 function clear() {
-  let leafletGroup = document.querySelector('svg.leaflet-zoom-animated > g:nth-child(1)');
-  while(leafletGroup.hasChildNodes()) {
-    leafletGroup.removeChild(leafletGroup.lastChild);
-  }
+  // mymap.removeLayer(killed);
+  // mymap.removeLayer(injured)
+  mymap.eachLayer(function (layer) {
+    if (layer.hasOwnProperty('feature')) {
+      layer.remove();
+    }
+  })
   reqData = [];
   points = [];
   secLvl = 'Level0';
@@ -198,24 +201,7 @@ function highlightPath(secLevel, minColor, maxColor) {
     if(layer.hasOwnProperty('feature')) {
       if(layer.feature.properties.secLvl === secLvl) {
         let cost = layer.feature.properties.user_killed;
-        layer.setStyle({color: color(cost)})
-      }
-      else {
-        layer.setStyle({color: '#778899'});
-      }
-    }
-  })
-
-  min = _.minBy(d.data.features, 'properties.user_injured');
-  max = _.maxBy(d.data.features, 'properties.user_injured');
-  // console.log(min.properties.cost, max.properties.cost);
-  color = d3.scaleLinear()
-    .domain([min.properties.user_injured, max.properties.user_injured])
-    .range([minColor, maxColor])
-  mymap.eachLayer(function (layer) {
-    if(layer.hasOwnProperty('feature')) {
-      if(layer.feature.properties.secLvl === secLvl) {
-        let cost = layer.feature.properties.user_injured;
+        layer.bringToFront();
         layer.setStyle({color: color(cost)})
       }
       else {
