@@ -45,7 +45,20 @@ function clear() {
   secLvl = 'Level0';
 }
 
-let mymap = L.map('mapid').setView([40.689038, -73.984000], 10.5);
+// layer controls leaflet
+var killed = L.layerGroup();
+var injured = L.layerGroup();
+var accidentType = {
+  'killed': killed,
+  'injured': injured
+}
+
+let mymap = L.map('mapid', {
+  center: [40.689038, -73.984000],
+  zoom: 10.5,
+  layer: [accidentType]
+});
+L.control.layers(accidentType).addTo(mymap);
 mymap.setMinZoom(11);
 // mymap.setBounds(L.bounds(L.points(-74.257965, 40.492915), L.points(-73.705215, 40.869911)))
 // console.log(mymap.getBounds());
@@ -154,11 +167,13 @@ function send(data, task, lvl, user) {
   .catch(error => console.error('Error: ', error))
   .then((res) => {
     // get featCol with geoJSON path
-    console.log(res);
+    console.log('Server response: ', res);
     res.features.forEach(f => {
       f.properties.secLvl = lvl;
     })
-    let leaflet_id = colorPath(res, 'lawngreen', 'orangered');
+    let leaflet_id = colorPath(res, 'lawngreen', 'orangered', user);
+    console.log(mymap);
+
     reqData.push({
       data: res,
       secLvl: lvl,
@@ -173,16 +188,34 @@ function highlightPath(secLevel, minColor, maxColor) {
   console.log(secLevel);
   let d = reqData.find(d => d.secLvl === secLvl);
   console.log(d);
-  let min = _.minBy(d.data.features, 'properties.cost');
-  let max = _.maxBy(d.data.features, 'properties.cost');
+  let min = _.minBy(d.data.features, 'properties.user_killed');
+  let max = _.maxBy(d.data.features, 'properties.user_killed');
   // console.log(min.properties.cost, max.properties.cost);
   let color = d3.scaleLinear()
-    .domain([min.properties.cost, max.properties.cost])
+    .domain([min.properties.user_killed, max.properties.user_killed])
     .range([minColor, maxColor])
   mymap.eachLayer(function (layer) {
     if(layer.hasOwnProperty('feature')) {
       if(layer.feature.properties.secLvl === secLvl) {
-        let cost = layer.feature.properties.cost;
+        let cost = layer.feature.properties.user_killed;
+        layer.setStyle({color: color(cost)})
+      }
+      else {
+        layer.setStyle({color: '#778899'});
+      }
+    }
+  })
+
+  min = _.minBy(d.data.features, 'properties.user_injured');
+  max = _.maxBy(d.data.features, 'properties.user_injured');
+  // console.log(min.properties.cost, max.properties.cost);
+  color = d3.scaleLinear()
+    .domain([min.properties.user_injured, max.properties.user_injured])
+    .range([minColor, maxColor])
+  mymap.eachLayer(function (layer) {
+    if(layer.hasOwnProperty('feature')) {
+      if(layer.feature.properties.secLvl === secLvl) {
+        let cost = layer.feature.properties.user_injured;
         layer.setStyle({color: color(cost)})
       }
       else {
@@ -192,17 +225,57 @@ function highlightPath(secLevel, minColor, maxColor) {
   })
 }
 
-function colorPath(data, minColor, maxColor) {
-  let min = _.minBy(data.features, 'properties.cost');
-  let max = _.maxBy(data.features, 'properties.cost');
-  // console.log(min.properties.cost, max.properties.cost);
+function colorPath(data, minColor, maxColor, user) {
+  // add to killed layer
+  let min = _.minBy(data.features, 'properties.user_killed');
+  let max = _.maxBy(data.features, 'properties.user_killed');
   let color = d3.scaleLinear()
-    .domain([min.properties.cost, max.properties.cost])
+    .domain([min.properties.user_killed, max.properties.user_killed])
     .range([minColor, maxColor])
   let handle = L.geoJSON(data, {
-    style: function (feat) {
-      return {color: color(feat.properties.cost).toString()};
+    style: function (f) {
+      let cost = f.properties.user_killed;
+      return {color: color(cost).toString()};
     }
-  }).addTo(mymap);
+  })
+  .bindTooltip(function (layer) {
+    if (user === 'Car') {
+      let msg = 'Car accidents killed: ' +layer.feature.properties.user_killed+
+        '\n' + 'Car accidents injured: ' +layer.feature.properties.user_injured;
+      return msg;
+    }
+    else {
+      let msg = user.toString() + ' killed: ' +layer.feature.properties.user_killed+
+        '\n' + user.toString() + ' injured: ' +layer.feature.properties.user_injured;
+      return msg;
+    }
+  })
+  .addTo(killed);
+
+  //add to injured layer
+  min = _.minBy(data.features, 'properties.user_injured');
+  max = _.maxBy(data.features, 'properties.user_injured');
+  color = d3.scaleLinear()
+    .domain([min.properties.user_injured, max.properties.user_injured])
+    .range([minColor, maxColor])
+  let handle_injured = L.geoJSON(data, {
+    style: function (f) {
+      let cost = f.properties.user_injured;
+      return {color: color(cost).toString()};
+    }
+  })
+  .bindTooltip(function (layer) {
+    if (user === 'Car') {
+      let msg = 'Car accidents injured: ' +layer.feature.properties.user_injured+
+        '\n' + 'Car accidents injured: ' +layer.feature.properties.user_injured;
+      return msg;
+    }
+    else {
+      let msg = user.toString() + ' injured: ' +layer.feature.properties.user_injured+
+        '\n' + user.toString() + ' injured: ' +layer.feature.properties.user_injured;
+      return msg;
+    }
+  })
+  .addTo(injured);
   return handle._leaflet_id;
 }
