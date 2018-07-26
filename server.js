@@ -109,7 +109,7 @@ function addSRID(feature) {
   return feature;
 }
 
-function computePath(source, target, res, cost, method) {
+function computePath(source, target, res, cost, method, user) {
   // get route back from db and send featCol of routing path
   let sourceQuery = "SELECT gid, source, st_asgeojson(the_geom)\
                             FROM ways\
@@ -130,14 +130,30 @@ function computePath(source, target, res, cost, method) {
       }).then(target => {
         console.log(source.source, target.target);
         // TODO: add cost into inner query -> db update is needed for that
-        let routeQuery = 'SELECT\
-                    st_asgeojson(ways.the_geom) as geojson, ways.length_m as cost\
-                    FROM (SELECT * FROM '+ method.toString() +'(\
-                      \'SELECT gid as id, source, target, '+ cost.toString() +' as cost FROM ways\', '+
-                      target.target.toString() + ', ' +
-                      source.source.toString()
-                      +')) as route\
-                      LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
+        let routeQuery = '';
+        if (user === 'Car') {
+          routeQuery = 'SELECT\
+                      st_asgeojson(ways.the_geom) as geojson, ways.length_m as cost, \
+                      car_accidents_killed as user_killed,\
+                      car_accidents_injured as user_injured\
+                      FROM (SELECT * FROM '+ method.toString() +'(\
+                        \'SELECT gid as id, source, target, '+ cost.toString() +' as cost FROM ways\', '+
+                        target.target.toString() + ', ' +
+                        source.source.toString()
+                        +')) as route\
+                        LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
+
+        } else {
+          routeQuery = 'SELECT\
+                      st_asgeojson(ways.the_geom) as geojson, ways.length_m as cost, \
+                      '+user.toString()+'s_killed as user_killed, '+user.toString()+'s_injured as user_injured\
+                      FROM (SELECT * FROM '+ method.toString() +'(\
+                        \'SELECT gid as id, source, target, '+ cost.toString() +' as cost FROM ways\', '+
+                        target.target.toString() + ', ' +
+                        source.source.toString()
+                        +')) as route\
+                        LEFT OUTER JOIN ways ways ON ways.gid = route.edge';
+        }
         console.log('routeQuery: ', routeQuery);
         return t.any(routeQuery).then(result => {
           console.log(result);
@@ -150,6 +166,8 @@ function computePath(source, target, res, cost, method) {
     let segments = data.map(f => {
       let feat = turf.feature(JSON.parse(f.geojson));
       feat.properties.cost = f.cost;
+      feat.properties.user_killed = f.user_killed;
+      feat.properties.user_injured = f.user_injured;
       return feat;
     });
     let featCol = turf.featureCollection(segments);
@@ -161,7 +179,7 @@ function computePath(source, target, res, cost, method) {
   })
 }
 
-function kShortPath(source, target, res, cost, method, k = 2) {
+function kShortPath(source, target, res, cost, method, user, k = 2) {
   // get route back from db and send featCol of routing path
   let sourceQuery = "SELECT gid, source, st_asgeojson(the_geom)\
                             FROM ways\
@@ -234,11 +252,11 @@ app.post('/route', (req, res) => {
   // computePath(source.geometry, target.geometry, res, 'length_m', 'pgr_dijkstra');
 
   if (method === 'pgr_dijkstra') {
-    computePath(source.geometry, target.geometry, res, cost, method);
+    computePath(source.geometry, target.geometry, res, cost, method, user);
   }
   else if(method === 'pgr_ksp') {
     let k = 3;
-    kShortPath(source.geometry, target.geometry, res, cost, method, k);
+    kShortPath(source.geometry, target.geometry, res, cost, method, user, k);
   }
 
 });
