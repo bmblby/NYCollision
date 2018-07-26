@@ -16,7 +16,7 @@ import '../css/template.css';
 // bootstrap layout
 let vehType = document.querySelector('.vehicle-type');
 vehType.addEventListener('click', function (e) {
-  // console.log(e.target.text);
+  clear();
   let currentDisplay = document.querySelector('li.nav-item:nth-child(2) > a:nth-child(1)');
   currentDisplay.text = e.target.text;
 })
@@ -32,12 +32,18 @@ secList.addEventListener('click', function (e) {
 
 let homeBtn = document.querySelector('.navbar-brand');
 homeBtn.addEventListener('click', function (e) {
+  clear();
+});
+
+function clear() {
   let leafletGroup = document.querySelector('svg.leaflet-zoom-animated > g:nth-child(1)');
   while(leafletGroup.hasChildNodes()) {
     leafletGroup.removeChild(leafletGroup.lastChild);
   }
-});
-
+  reqData = [];
+  points = [];
+  secLvl = 'Level0';
+}
 
 let mymap = L.map('mapid').setView([40.689038, -73.984000], 10.5);
 mymap.setMinZoom(11);
