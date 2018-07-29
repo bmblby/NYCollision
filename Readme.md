@@ -7,7 +7,7 @@ as well as some webserver architecture
 ## install
 Get repository from github
 
-    git clone https://github.com/bmblby/wifiOnIce
+    git clone https://github.com/glncstgl/NYCollision
 
 install modules from package.json from root directory of the project
 
