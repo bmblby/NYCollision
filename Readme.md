@@ -13,11 +13,14 @@ install modules from package.json from root directory of the project
 
     npm install
 
+## usage
+start local server on ./dist directory for example with node to launch the application locally
+
+    npm start server
+
+## dev
 start webpack service from the root directory of the project to watch files from ./src
 
     npm run watch
 
-start local server on ./dist directory for example with node to launch the application locally
 
-    npm install -g http-server
-    http-server -p 8000
