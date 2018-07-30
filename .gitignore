@@ -3,6 +3,8 @@
 data/
 dist/
 
+!./data/nycollision1.png
+
 # macos system files
 .DS_Store
 
