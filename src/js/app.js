@@ -61,7 +61,10 @@ let mymap = L.map('mapid', {
   zoom: 10.5,
   layer: [accidentType]
 });
-L.control.layers(accidentType).addTo(mymap);
+let layerControl = L.control.layers().addTo(mymap);
+layerControl.addOverlay(killed, 'killed');
+layerControl.addOverlay(injured, 'injured');
+mymap.addLayer(killed);
 mymap.setMinZoom(11);
 // mymap.setBounds(L.bounds(L.points(-74.257965, 40.492915), L.points(-73.705215, 40.869911)))
 // console.log(mymap.getBounds());
