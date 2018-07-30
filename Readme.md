@@ -7,17 +7,23 @@ as well as some webserver architecture
 ## install
 Get repository from github
 
-    git clone https://github.com/bmblby/wifiOnIce
+    git clone https://github.com/glncstgl/NYCollision
 
 install modules from package.json from root directory of the project
 
     npm install
 
+run setupdb script to create database tables, user and insert data
+please provide the path to the database dump file
+
+    ./setupdb.sh ./data/nyc.dump
+
+## usage
+start local server on ./dist directory for example with node to launch the application locally
+
+    npm start server
+
+## dev
 start webpack service from the root directory of the project to watch files from ./src
 
     npm run watch
-
-start local server on ./dist directory for example with node to launch the application locally
-
-    npm install -g http-server
-    http-server -p 8000
