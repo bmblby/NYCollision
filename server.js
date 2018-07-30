@@ -12,7 +12,7 @@ const pgp = require('pg-promise')({
 });
 
 // pgp code
-const cn = "postgres://giuli@localhost:5432/postgres";
+const cn = "postgres://nyc_user@localhost:5432/nyc_db";
 const db = pgp(cn);
 module.export = db;
 
