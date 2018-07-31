@@ -12,9 +12,8 @@ const pgp = require('pg-promise')({
 });
 
 // pgp code
-const cn = "postgres://nyc_user@localhost:5432/nyc_db";
 const cn = {
-	host: 'localhost',
+	ost: 'localhost',
 	port: '5432',
 	database: 'nyc_db',
 	user: 'nyc_user',
